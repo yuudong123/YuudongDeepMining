@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Yuudong Deep Mining</name>
+  <author>yuudong2</author>
+  <packageId>yuudong2.deepmining</packageId>
+  <modVersion>1.0.0</modVersion>
+  <supportedVersions>
+    <li>1.7</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+      <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>brrainz.harmony</li>
+  </loadAfter>
+  <description>Dig down instead of tearing up the mountains around your base.
+
+Build a mine shaft and a brand-new underground level opens up beneath it: solid rock laced with ore veins. Build a deep shaft down there to go one level deeper.
+
+Features
+- Mine shaft (2x2): opens a new underground map below it. One shaft per map. Deep shafts, built underground, cost more materials and work. Maximum depth is configurable (default: 5 levels).
+- Underground levels are dark cave maps full of rock. The deeper you go, the more ore veins there are and the more valuable the ore gets.
+- Harder rock: rock and ore get tougher with every level (+50% per level, stops increasing at level 4 by default).
+- Infestations: underground levels with colonists on them get insect infestations, more often the deeper you go (with a cap).
+- Work level: assign each colonist a level and they will climb the shaft ladders on their own. If they get hungry or tired and there is no food or bed on that level, they come up, take care of it and go back down.
+- Send resources up: items with nowhere to be stored on an underground level are carried up the ladder. Choose which items in the ladder's storage tab.
+- Sealing a shaft, or losing it, collapses every level below it. Everything down there is lost, and anyone still below is buried alive.
+- Raids: when none of your active colonists are on the surface but some are underground, sapper and breacher raids follow you down the shaft. Other raiders never notice the underground levels.
+- The shaft only takes damage when it is deliberately attacked: enemy AI never picks it as a target, and stray shots pass over it. The ladder out of an underground level cannot be damaged or deconstructed.
+
+Settings: maximum depth, size of new levels, rock hardness, infestation frequency, sapper/breacher raids following you down, indestructible shafts.
+
+Requirements: RimWorld 1.7 and Harmony. No DLC required.
+Languages: English, Korean.
+
+Notes
+- Every underground level is a separate map, so many levels cost performance.
+- Removing this mod from a save that has underground levels will break the save.
+- Underground levels are covered by thick overhead mountain everywhere. Mine large areas carefully and leave pillars, or the roof can collapse just like on the surface.</description>
+</ModMetaData>

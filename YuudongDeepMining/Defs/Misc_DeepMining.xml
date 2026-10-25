@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- 갱도 붕괴로 죽을 때의 피해. 사망 메시지가 따로 나온다. -->
+  <DamageDef>
+    <defName>YDM_CaveIn</defName>
+    <label>cave-in</label>
+    <workerClass>DamageWorker_AddInjury</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was buried alive when the mine shaft caved in.</deathMessage>
+    <hediff>Crush</hediff>
+    <hediffSkin>Cut</hediffSkin>
+    <hediffSolid>Crack</hediffSolid>
+    <harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+    <impactSoundType>Blunt</impactSoundType>
+    <armorCategory>Blunt</armorCategory>
+  </DamageDef>
+
+  <!-- 영리한 습격대가 갱도로 내려갈 때의 임무. -->
+  <DutyDef>
+    <defName>YDM_EnterShaft</defName>
+    <alwaysShowWeapon>true</alwaysShowWeapon>
+    <thinkNode Class="ThinkNode_Priority">
+      <subNodes>
+        <li Class="JobGiver_EnterPortal" />
+        <li Class="JobGiver_AIFightEnemies">
+          <targetAcquireRadius>30</targetAcquireRadius>
+          <targetKeepRadius>40</targetKeepRadius>
+        </li>
+        <li Class="JobGiver_AITrashColonyClose" />
+        <li Class="JobGiver_WanderNearDutyLocation">
+          <wanderRadius>6</wanderRadius>
+        </li>
+      </subNodes>
+    </thinkNode>
+  </DutyDef>
+
+  <JobDef>
+    <defName>YDM_HaulUpShaft</defName>
+    <driverClass>YuudongDeepMining.JobDriver_HaulUpShaft</driverClass>
+    <reportString>sending TargetA up the shaft.</reportString>
+    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+  </JobDef>
+
+  <WorkGiverDef>
+    <defName>YDM_HaulUpShaft</defName>
+    <label>send resources up the shaft</label>
+    <giverClass>YuudongDeepMining.WorkGiver_HaulUpShaft</giverClass>
+    <workType>Hauling</workType>
+    <verb>send up</verb>
+    <gerund>sending up</gerund>
+    <priorityInType>14</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <!-- 정착민이 작업 층으로 계단을 오르내리는 생각 노드. 일과 욕구보다 먼저 판단한다. -->
+  <ThinkTreeDef>
+    <defName>YDM_TravelLayer</defName>
+    <insertTag>Humanlike_PreMain</insertTag>
+    <insertPriority>100</insertPriority>
+    <thinkRoot Class="ThinkNode_ConditionalColonist">
+      <subNodes>
+        <li Class="YuudongDeepMining.JobGiver_TravelLayer" />
+      </subNodes>
+    </thinkRoot>
+  </ThinkTreeDef>
+
+</Defs>

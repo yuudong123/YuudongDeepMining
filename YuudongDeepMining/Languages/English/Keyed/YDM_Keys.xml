@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <YDM.SettingsCategory>Yuudong Deep Mining</YDM.SettingsCategory>
+  <YDM.Settings.MaxDepth>Maximum depth: level {0}</YDM.Settings.MaxDepth>
+  <YDM.Settings.MapSize>New level size: {0} x {0} (existing levels keep their size)</YDM.Settings.MapSize>
+  <YDM.Settings.HardnessPerLayer>Rock and ore hardness per level: +{0}</YDM.Settings.HardnessPerLayer>
+  <YDM.Settings.HardnessCap>Hardness stops increasing from level {0}</YDM.Settings.HardnessCap>
+  <YDM.Settings.HardnessExample>  → Level 1: {0}, hardest level: {1} (time needed to mine or break rock)</YDM.Settings.HardnessExample>
+  <YDM.Settings.Infestations>Underground infestations</YDM.Settings.Infestations>
+  <YDM.Settings.InfestationBase>Level 1 infestation interval: {0} days on average</YDM.Settings.InfestationBase>
+  <YDM.Settings.InfestationFactor>Interval multiplier per level: {0}</YDM.Settings.InfestationFactor>
+  <YDM.Settings.InfestationCap>Infestation frequency stops increasing from level {0}</YDM.Settings.InfestationCap>
+  <YDM.Settings.InfestationCooldown>Minimum days between infestations: {0}</YDM.Settings.InfestationCooldown>
+  <YDM.Settings.InfestationExample>  → Level 1: every {0} days, level {1} and deeper: every {2} days (only while colonists are on that level)</YDM.Settings.InfestationExample>
+  <YDM.Settings.SmartRaiders>Sapper and breacher raids follow you down the shaft</YDM.Settings.SmartRaiders>
+  <YDM.Settings.SmartRaidersDesc>When no active colonists are on the surface but some are underground, raiders using the sapper or breacher strategy climb down the shaft once they can reach it. Other raiders never notice the underground levels.</YDM.Settings.SmartRaidersDesc>
+  <YDM.Settings.ShaftInvulnerable>Mine shafts are indestructible</YDM.Settings.ShaftInvulnerable>
+  <YDM.Settings.ShaftInvulnerableDesc>Mine shafts take no damage. A destroyed shaft collapses every level below it, so turn this on if you don't want to risk losing them in a raid. You can still seal them.</YDM.Settings.ShaftInvulnerableDesc>
+  <YDM.Surface>surface</YDM.Surface>
+  <YDM.LayerN>underground level {0}</YDM.LayerN>
+  <YDM.GoDown>Go down to {0}</YDM.GoDown>
+  <YDM.GoingDown>going down to {0}</YDM.GoingDown>
+  <YDM.GoUp>Go up to {0}</YDM.GoUp>
+  <YDM.GoingUp>going up to {0}</YDM.GoingUp>
+  <YDM.LeadsTo>Leads to: {0}</YDM.LeadsTo>
+  <YDM.NotDugYet>(no one has gone down yet)</YDM.NotDugYet>
+  <YDM.InspectDepth>Current level: {0}</YDM.InspectDepth>
+  <YDM.InspectHardness>Rock and ore hardness: {0}</YDM.InspectHardness>
+  <YDM.InspectInfestation>Average days between infestations: {0}</YDM.InspectInfestation>
+  <YDM.Collapse>Seal shaft</YDM.Collapse>
+  <YDM.CollapseDesc>Collapse the shaft and seal it. Every level below disappears: everything there is lost and every person and animal still down there is crushed.</YDM.CollapseDesc>
+  <YDM.CollapseConfirm>Really seal this shaft? {0} and every level below it will collapse. This cannot be undone.</YDM.CollapseConfirm>
+  <YDM.CollapseConfirmPawns>{0} colonists and {1} other creatures are still down there. They will all be crushed.</YDM.CollapseConfirmPawns>
+  <YDM.CollapsedLetterLabel>Shaft collapsed</YDM.CollapsedLetterLabel>
+  <YDM.CollapsedLetterText>The mine shaft caved in. {0} and every level below it are gone.</YDM.CollapsedLetterText>
+  <YDM.CollapsedLetterLost>Buried in the collapse:</YDM.CollapsedLetterLost>
+  <YDM.CollapsedLetterItems>{0} items were buried with it.</YDM.CollapsedLetterItems>
+  <YDM.AutoHaulUp>Send resources up</YDM.AutoHaulUp>
+  <YDM.AutoHaulUpDesc>When on, haulers send items chosen in the storage tab up these stairs if they have nowhere to be stored on this level. They land next to the shaft above.</YDM.AutoHaulUpDesc>
+  <YDM.RaidersDescending>Raiders from {0} are climbing down the mine shaft!</YDM.RaidersDescending>
+  <YDM.SurfaceOnly>Can only be built on the surface; build a deep mine shaft underground</YDM.SurfaceOnly>
+  <YDM.UndergroundOnly>Can only be built on an underground level</YDM.UndergroundOnly>
+  <YDM.MaxDepthReached>Can't dig any deeper (maximum depth: level {0})</YDM.MaxDepthReached>
+  <YDM.OneShaftPerMap>This map already has a mine shaft</YDM.OneShaftPerMap>
+  <YDM.AssignFree>free</YDM.AssignFree>
+  <YDM.AssignLabel>Work level: {0}</YDM.AssignLabel>
+  <YDM.AssignDesc>Choose which level this colonist works on. They use the shaft stairs to get there on their own. If they get hungry or tired and there is no food or bed on that level, they come up, take care of it and go back down.\n\nFree: never changes level unless you send them.</YDM.AssignDesc>
+
+</LanguageData>

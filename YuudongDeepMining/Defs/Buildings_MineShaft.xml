@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <ThingDef ParentName="BuildingBase" Name="YDM_MineShaftBase" Abstract="True">
+    <thingClass>YuudongDeepMining.Building_MineShaft</thingClass>
+    <size>(2,2)</size>
+    <rotatable>false</rotatable>
+    <tickerType>Normal</tickerType>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <fillPercent>0.4</fillPercent>
+    <holdsRoof>true</holdsRoof>
+    <canOverlapZones>false</canOverlapZones>
+    <terrainAffordanceNeeded>Heavy</terrainAffordanceNeeded>
+    <designationCategory>Misc</designationCategory>
+    <graphicData>
+      <graphicClass>Graphic_Single</graphicClass>
+      <texPath>YDM/MineShaft</texPath>
+      <!-- 나무 틀이 2x2를 덮고, 둘레 흙·자갈이 조금 밖으로 나온다. -->
+      <drawSize>(2.41,2.41)</drawSize>
+    </graphicData>
+    <uiIconPath>YDM/MineShaft</uiIconPath>
+    <placeWorkers>
+      <li>YuudongDeepMining.PlaceWorker_MineShaft</li>
+    </placeWorkers>
+    <building>
+      <isEdifice>true</isEdifice>
+      <deconstructible>false</deconstructible>
+      <claimable>false</claimable>
+      <expandHomeArea>false</expandHomeArea>
+      <ai_chillDestination>false</ai_chillDestination>
+      <!-- 적의 부수기·돌파 AI와 짜증 발작이 갱도를 목표로 고르지 않는다. 직접 공격 지정은 된다. -->
+      <ai_neverTrashThis>true</ai_neverTrashThis>
+    </building>
+    <portal>
+      <pocketMapGenerator>YDM_Underground</pocketMapGenerator>
+      <exitDef>YDM_MineShaftExit</exitDef>
+      <pocketMapSize>150</pocketMapSize>
+    </portal>
+    <inspectorTabs>
+      <li>ITab_ContentsMapPortal</li>
+    </inspectorTabs>
+  </ThingDef>
+
+  <ThingDef ParentName="YDM_MineShaftBase">
+    <defName>YDM_MineShaft</defName>
+    <label>mine shaft</label>
+    <description>A timbered shaft dug straight down into the bedrock. It opens onto a new underground level full of rock and ore veins, so the mountains around your base can stay untouched.\n\nOnly one shaft can be built per map. Sealing or destroying the shaft collapses every level below it: everything inside is lost and every creature down there is crushed.</description>
+    <statBases>
+      <MaxHitPoints>1500</MaxHitPoints>
+      <WorkToBuild>8000</WorkToBuild>
+      <Flammability>0</Flammability>
+      <Beauty>-5</Beauty>
+    </statBases>
+    <costList>
+      <Steel>100</Steel>
+      <WoodLog>150</WoodLog>
+    </costList>
+    <constructionSkillPrerequisite>4</constructionSkillPrerequisite>
+  </ThingDef>
+
+  <ThingDef ParentName="YDM_MineShaftBase">
+    <defName>YDM_MineShaftDeep</defName>
+    <label>deep mine shaft</label>
+    <description>A heavily braced shaft sunk from an underground level down to the next one. The deeper rock takes far more material and time to shore up.\n\nOnly one shaft can be built per level. Sealing or destroying the shaft collapses every level below it: everything inside is lost and every creature down there is crushed.</description>
+    <statBases>
+      <MaxHitPoints>2000</MaxHitPoints>
+      <WorkToBuild>16000</WorkToBuild>
+      <Flammability>0</Flammability>
+      <Beauty>-5</Beauty>
+    </statBases>
+    <costList>
+      <Steel>200</Steel>
+      <WoodLog>250</WoodLog>
+      <ComponentIndustrial>4</ComponentIndustrial>
+    </costList>
+    <constructionSkillPrerequisite>8</constructionSkillPrerequisite>
+  </ThingDef>
+
+  <ThingDef ParentName="PocketMapExit">
+    <defName>YDM_MineShaftExit</defName>
+    <label>shaft stairs</label>
+    <description>Stairs leading back up the mine shaft. Haulers send resources that have nowhere to be stored on this level up these stairs; choose which ones in the storage tab.</description>
+    <thingClass>YuudongDeepMining.Building_MineShaftExit</thingClass>
+    <size>(2,2)</size>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
+    <graphicData>
+      <graphicClass>Graphic_Single</graphicClass>
+      <texPath>YDM/MineShaftExit</texPath>
+      <!-- 나무 틀이 2x2를 덮고, 사다리는 위쪽으로 길게 나온다. -->
+      <drawSize>(3.43,3.43)</drawSize>
+    </graphicData>
+    <uiIconPath>YDM/MineShaftExit</uiIconPath>
+    <statBases>
+      <Flammability>0</Flammability>
+    </statBases>
+    <inspectorTabs>
+      <li>ITab_Storage</li>
+    </inspectorTabs>
+    <comps>
+      <li Class="CompProperties_Glower">
+        <glowRadius>7</glowRadius>
+        <glowColor>(217,200,160,0)</glowColor>
+      </li>
+    </comps>
+  </ThingDef>
+
+</Defs>

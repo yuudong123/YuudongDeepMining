@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <YDM_CaveIn.label>갱도 붕괴</YDM_CaveIn.label>
+  <YDM_CaveIn.deathMessage>{0}이(가) 무너진 갱도에 깔려 생매장되었습니다.</YDM_CaveIn.deathMessage>
+
+</LanguageData>

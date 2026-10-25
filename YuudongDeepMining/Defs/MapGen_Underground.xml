@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- 지하 층: 바닐라 지하 지도(땅굴·고대 창고)와 같은 생성 단계에, 깊이별 광맥과 계단 출구를 더한다. -->
+  <MapGeneratorDef>
+    <defName>YDM_Underground</defName>
+    <label>underground level</label>
+    <isUnderground>true</isUnderground>
+    <forceCaves>true</forceCaves>
+    <ignoreAreaRevealedLetter>true</ignoreAreaRevealedLetter>
+    <disableCallAid>true</disableCallAid>
+    <customMapComponents>
+      <li>YuudongDeepMining.MapComponent_DeepLayer</li>
+    </customMapComponents>
+    <pocketMapProperties>
+      <biome>Underground</biome>
+      <temperature>15</temperature>
+      <canBeCleaned>true</canBeCleaned>
+      <tileMutators>
+        <li>UndergroundCave</li>
+      </tileMutators>
+    </pocketMapProperties>
+    <genSteps>
+      <li>ElevationFertility</li>
+      <li>MutatorPostElevationFertility</li>
+      <li>Underground_RocksFromGrid</li>
+      <li>YDM_DeepOres</li>
+      <li>Terrain</li>
+      <li>MutatorPostTerrain</li>
+      <li>RockChunks</li>
+      <li>YDM_PlaceShaftExit</li>
+      <li>MutatorFinal</li>
+      <li>Fog</li>
+    </genSteps>
+  </MapGeneratorDef>
+
+  <GenStepDef>
+    <defName>YDM_DeepOres</defName>
+    <order>210</order>
+    <genStep Class="YuudongDeepMining.GenStep_DeepOres" />
+  </GenStepDef>
+
+  <GenStepDef>
+    <defName>YDM_PlaceShaftExit</defName>
+    <order>400</order>
+    <genStep Class="YuudongDeepMining.GenStep_DeepLayerExit" />
+  </GenStepDef>
+
+</Defs>

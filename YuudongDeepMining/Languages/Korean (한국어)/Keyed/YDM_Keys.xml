@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <YDM.SettingsCategory>Yuudong 심층 채굴</YDM.SettingsCategory>
+  <YDM.Settings.MaxDepth>최대 깊이: 지하 {0}층</YDM.Settings.MaxDepth>
+  <YDM.Settings.MapSize>새 지하 층 크기: {0} x {0} (이미 생긴 층은 그대로)</YDM.Settings.MapSize>
+  <YDM.Settings.HardnessPerLayer>한 층마다 바위·광석 단단함 증가: +{0}</YDM.Settings.HardnessPerLayer>
+  <YDM.Settings.HardnessCap>단단함은 지하 {0}층부터 더 늘지 않음</YDM.Settings.HardnessCap>
+  <YDM.Settings.HardnessExample>  → 지하 1층 {0}, 가장 단단한 층 {1} (채굴·파괴에 드는 시간 배율)</YDM.Settings.HardnessExample>
+  <YDM.Settings.Infestations>지하 곤충군락</YDM.Settings.Infestations>
+  <YDM.Settings.InfestationBase>지하 1층 곤충군락 평균 간격: {0}일</YDM.Settings.InfestationBase>
+  <YDM.Settings.InfestationFactor>한 층 내려갈 때마다 간격 배율: {0}</YDM.Settings.InfestationFactor>
+  <YDM.Settings.InfestationCap>곤충군락 빈도는 지하 {0}층부터 더 늘지 않음</YDM.Settings.InfestationCap>
+  <YDM.Settings.InfestationCooldown>곤충군락 사이 최소 간격: {0}일</YDM.Settings.InfestationCooldown>
+  <YDM.Settings.InfestationExample>  → 지하 1층 평균 {0}일, 지하 {1}층부터 평균 {2}일마다 (정착민이 그 층에 있을 때만)</YDM.Settings.InfestationExample>
+  <YDM.Settings.SmartRaiders>공병·돌파 습격대가 갱도로 내려옴</YDM.Settings.SmartRaiders>
+  <YDM.Settings.SmartRaidersDesc>지상에 활동 중인 정착민이 없고 지하에만 있을 때, 공병·돌파 전략을 쓰는 습격대는 갱도까지 길이 열리면 내려와 공격합니다. 다른 습격대는 지하를 알아채지 못합니다.</YDM.Settings.SmartRaidersDesc>
+  <YDM.Settings.ShaftInvulnerable>갱도가 부서지지 않음</YDM.Settings.ShaftInvulnerable>
+  <YDM.Settings.ShaftInvulnerableDesc>켜면 갱도가 피해를 받지 않습니다. 갱도가 파괴되면 아래층이 모두 무너지므로, 습격에 갱도를 잃고 싶지 않을 때 켜세요. 폐쇄는 그대로 할 수 있습니다.</YDM.Settings.ShaftInvulnerableDesc>
+  <YDM.Surface>지상</YDM.Surface>
+  <YDM.LayerN>지하 {0}층</YDM.LayerN>
+  <YDM.GoDown>{0}(으)로 내려가기</YDM.GoDown>
+  <YDM.GoingDown>{0}(으)로 내려가는 중</YDM.GoingDown>
+  <YDM.GoUp>{0}(으)로 올라가기</YDM.GoUp>
+  <YDM.GoingUp>{0}(으)로 올라가는 중</YDM.GoingUp>
+  <YDM.LeadsTo>연결: {0}</YDM.LeadsTo>
+  <YDM.NotDugYet>(아직 아무도 내려가지 않음)</YDM.NotDugYet>
+  <YDM.InspectDepth>현재 위치: {0}</YDM.InspectDepth>
+  <YDM.InspectHardness>바위·광석 단단함: {0}</YDM.InspectHardness>
+  <YDM.InspectInfestation>곤충군락 평균 간격: {0}일</YDM.InspectInfestation>
+  <YDM.Collapse>갱도 폐쇄</YDM.Collapse>
+  <YDM.CollapseDesc>갱도를 무너뜨려 막습니다. 아래층은 모두 사라지고, 그 안의 물건은 잃으며, 그 안에 있는 사람과 동물은 갱도에 깔려 죽습니다.</YDM.CollapseDesc>
+  <YDM.CollapseConfirm>정말 갱도를 폐쇄할까요? {0}와(과) 그 아래층이 모두 무너지며 되돌릴 수 없습니다.</YDM.CollapseConfirm>
+  <YDM.CollapseConfirmPawns>아직 아래에 정착민 {0}명, 다른 생물 {1}마리가 있습니다. 모두 갱도에 깔려 죽습니다.</YDM.CollapseConfirmPawns>
+  <YDM.CollapsedLetterLabel>갱도 붕괴</YDM.CollapsedLetterLabel>
+  <YDM.CollapsedLetterText>갱도가 무너져 {0}와(과) 그 아래층이 사라졌습니다.</YDM.CollapsedLetterText>
+  <YDM.CollapsedLetterLost>무너진 갱도에 깔려 죽음:</YDM.CollapsedLetterLost>
+  <YDM.CollapsedLetterItems>물건 {0}개가 함께 묻혔습니다.</YDM.CollapsedLetterItems>
+  <YDM.AutoHaulUp>자원 올려 보내기</YDM.AutoHaulUp>
+  <YDM.AutoHaulUpDesc>켜면 이 층에 보관할 곳이 없는 물건 중 '저장소' 탭에서 고른 것을 운반꾼이 이 계단으로 올려 보냅니다. 물건은 위층 갱도 옆에 놓입니다.</YDM.AutoHaulUpDesc>
+  <YDM.RaidersDescending>{0}의 습격대가 갱도를 타고 지하로 내려오고 있습니다!</YDM.RaidersDescending>
+  <YDM.SurfaceOnly>지상에만 지을 수 있습니다. 지하에서는 깊은 갱도를 지으세요</YDM.SurfaceOnly>
+  <YDM.UndergroundOnly>지하 층에서만 지을 수 있습니다</YDM.UndergroundOnly>
+  <YDM.MaxDepthReached>더 내려갈 수 없습니다 (최대 깊이: 지하 {0}층)</YDM.MaxDepthReached>
+  <YDM.OneShaftPerMap>이 지도에는 이미 갱도가 있습니다</YDM.OneShaftPerMap>
+  <YDM.AssignFree>자유</YDM.AssignFree>
+  <YDM.AssignLabel>작업 층: {0}</YDM.AssignLabel>
+  <YDM.AssignDesc>이 정착민이 지낼 층을 정합니다. 정하면 계단을 타고 그 층으로 가서 일합니다. 배고프거나 졸린데 그 층에 먹을 것이나 침대가 없으면 위로 올라왔다가 해결한 뒤 다시 내려갑니다.\n\n자유: 층을 옮기지 않습니다 (직접 계단으로 보낼 때만 이동).</YDM.AssignDesc>
+
+</LanguageData>
