@@ -21,6 +21,8 @@ namespace YuudongDeepMining
 
         private static readonly Dictionary<Map, IntVec3> cameraByMap = new Dictionary<Map, IntVec3>();
 
+        private static Rect panelRect;
+
         private const float PanelWidth = 150f;
         private const float RowHeight = 26f;
 
@@ -132,7 +134,22 @@ namespace YuudongDeepMining
                 Event.current.Use();
             }
 
+            Event e = Event.current;
+            if (e.type == EventType.MouseDown)
+            {
+                LayerDebug.LogUI("mouse down: button " + e.button + ", remote " + remote.Count + ", selected pawns " + Find.Selector.SelectedPawns.Count
+                    + ", over window " + (Find.WindowStack.GetWindowAt(UI.MousePositionOnUIInverted) != null));
+            }
+
             DrawPanel(map, chain);
+
+            // 우클릭 처리: 이 지점(MapInterfaceOnGUI_BeforeMainTabs)은 큰 메서드라 패치가 확실히 돈다.
+            // 창보다 먼저 입력을 받으므로, 마우스가 창이나 아래 메인 버튼 줄 위에 있으면 건드리지 않는다.
+            Vector2 mouse = UI.MousePositionOnUIInverted;
+            if (e.type == EventType.MouseDown && e.button == 1 && Find.WindowStack.GetWindowAt(mouse) == null && mouse.y < UI.screenHeight - 35f && !panelRect.Contains(mouse))
+            {
+                RemoteRightClick.Handle("panel OnGUI");
+            }
         }
 
         private static void DrawPanel(Map map, List<Map> chain)
@@ -140,6 +157,7 @@ namespace YuudongDeepMining
             float height = 28f + chain.Count * RowHeight + (remote.Count > 0 ? 58f : 0f);
             // 오른쪽 아래, 날짜·속도 컨트롤(GlobalControls) 왼쪽. 오른쪽 위는 알림 칸과 겹친다.
             Rect outer = new Rect(UI.screenWidth - GlobalControls.Width - PanelWidth - 12f, UI.screenHeight - 35f - height - 8f, PanelWidth, height);
+            panelRect = outer;
             Widgets.DrawWindowBackground(outer);
             Rect inner = outer.ContractedBy(5f);
             Text.Font = GameFont.Tiny;
@@ -322,10 +340,16 @@ namespace YuudongDeepMining
     // 먼저 도는 쪽이 이벤트를 소비하면 다른 쪽은 그냥 지나간다.
     internal static class RemoteRightClick
     {
-        public static void Handle()
+        public static void Handle(string source)
         {
             Event e = Event.current;
-            if (e == null || e.type != EventType.MouseDown || e.button != 1 || !RemoteControl.HasRemote || Find.CurrentMap == null)
+            if (e == null || e.type != EventType.MouseDown || e.button != 1)
+            {
+                return;
+            }
+
+            LayerDebug.LogUI("right-click reached " + source + ": remote " + RemoteControl.Remote.Count);
+            if (!RemoteControl.HasRemote || Find.CurrentMap == null)
             {
                 return;
             }
@@ -346,7 +370,7 @@ namespace YuudongDeepMining
     {
         private static void Prefix()
         {
-            RemoteRightClick.Handle();
+            RemoteRightClick.Handle("HandleLowPriorityInput");
         }
     }
 
@@ -355,7 +379,7 @@ namespace YuudongDeepMining
     {
         private static void Prefix()
         {
-            RemoteRightClick.Handle();
+            RemoteRightClick.Handle("SelectorOnGUI");
         }
     }
 
