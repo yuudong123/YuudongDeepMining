@@ -36,7 +36,7 @@ Settings: maximum depth, new level size, hardness per level and cap, infestation
 
 ## Design rules (checked by the test harness)
 
-1. Never replace vanilla: no prefix that skips the original, except two narrow UI/projectile hooks. Decisions come from calling vanilla code.
+1. Never replace vanilla: no prefix that skips the original, except one narrow projectile hook (stray shots pass over the shaft). UI hooks only consume the input event. Decisions come from calling vanilla code.
 2. Map/position swaps ("ghost evaluation") live only in `GhostUtility`, last one call, are always restored in `finally`, also restore the RNG state and bill ingredient-search timers, and an exception only drops that one evaluation.
 3. No parallel job queue: travel is vanilla `EnterPortal`; the mod only remembers "which level a colonist is heading to".
 4. Hook common points (think tree nodes, map pawn lists, resource / wealth counters), not individual features.

@@ -206,6 +206,15 @@ namespace YuudongDeepMining
     // 층 판단 디버그 로그 (설정에서 켬). 같은 림·같은 내용은 잠시 한 번만 남긴다.
     public static class LayerDebug
     {
+        // 화면 조작(우클릭 등) 디버그: 같은 내용을 반복해도 매번 남긴다.
+        public static void LogUI(string message)
+        {
+            if (DeepMiningMod.Settings.debugLog)
+            {
+                Verse.Log.Message("[YDM] UI: " + message);
+            }
+        }
+
         private static readonly Dictionary<string, int> last = new Dictionary<string, int>();
 
         public static void Log(Pawn pawn, string message)

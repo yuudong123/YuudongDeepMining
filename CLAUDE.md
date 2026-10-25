@@ -5,7 +5,7 @@ RimWorld 1.7(Waylith .NET 10) 개인용 모드. 모드 본체는 `YuudongDeepMin
 - 빌드: `YuudongDeepMining/Source/YuudongDeepMining`에서 `dotnet build -c Release`
 - 검사: `tools/ydmtest`에서 `dotnet build -c Release` 후 `dotnet bin/Release/net10.0/ydmtest.dll` (패치 적용, 정의·클래스 참조, 설계 원칙 검사. failed=0이어야 함)
 - 번역: `python tools/ydm_lang.py` (영어·한국어 Keyed와 한국어 DefInjected를 생성. 번역 문구는 이 파일에서 고친다)
-- 설계 원칙: `YuudongDeepMining/README.md`의 Design rules. 원본을 막는 Prefix 금지, 지도·위치 바꿔치기는 `Levels/GhostUtility.cs`에서만.
+- 설계 원칙: `YuudongDeepMining/README.md`의 Design rules. 원본을 막는 Prefix 금지, 지도·위치 바꿔치기는 `Levels/GhostUtility.cs`에서만. .NET 10에서 작은 메서드는 인라인돼 패치가 무시될 수 있으니, 입력·UI 훅은 바닐라 흐름의 여러 지점에 걸고 이벤트 소비로 중복을 막는다.
 - 배포: 게임 `D:\Games\Steam\steamapps\common\RimWorld\Mods\YuudongDeepMining`에 모드 폴더 복사 (obj·bin 제외). 요청이 있을 때만.
 
 ## 공통 작업 절차

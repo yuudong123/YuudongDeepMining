@@ -204,8 +204,10 @@ namespace YuudongDeepMining
             Map map = Find.CurrentMap;
             IntVec3 cell = IntVec3.FromVector3(clickPos);
             List<Pawn> pawns = remote.Where(p => p.Spawned && p.CanTakeOrder && p.Map != map && LayerUtility.SameChain(p.Map, map)).ToList();
+            LayerDebug.LogUI("right-click at " + cell + ": remote " + remote.Count + ", usable " + pawns.Count);
             if (pawns.Count == 0 || !cell.InBounds(map))
             {
+                Messages.Message("YDM.RemoteNoOptions".Translate(), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
@@ -315,19 +317,45 @@ namespace YuudongDeepMining
     }
 
     // 원격 선택이 있고 이 층에서 선택한 림이 없을 때 우클릭하면 원격 명령 메뉴를 연다.
-    [HarmonyPatch(typeof(Selector), "HandleMapClicks")]
-    internal static class Selector_HandleMapClicks_Remote_Patch
+    // 원본은 막지 않고 이벤트만 소비한다 (소비된 우클릭은 바닐라가 보지 않는다).
+    // .NET 10에서는 작은 메서드가 호출부에 인라인되면 그 메서드의 패치가 무시될 수 있어서, 바닐라 입력 흐름의 두 지점에 같이 건다.
+    // 먼저 도는 쪽이 이벤트를 소비하면 다른 쪽은 그냥 지나간다.
+    internal static class RemoteRightClick
     {
-        private static bool Prefix(Selector __instance)
+        public static void Handle()
         {
-            if (Event.current.type != EventType.MouseDown || Event.current.button != 1 || !RemoteControl.HasRemote || __instance.SelectedPawns.Any())
+            Event e = Event.current;
+            if (e == null || e.type != EventType.MouseDown || e.button != 1 || !RemoteControl.HasRemote || Find.CurrentMap == null)
             {
-                return true;
+                return;
+            }
+
+            if (Find.Selector.SelectedPawns.Any())
+            {
+                LayerDebug.LogUI("right-click: vanilla pawns selected, vanilla menu");
+                return;
             }
 
             RemoteControl.OpenMenu(UI.MouseMapPosition());
-            Event.current.Use();
-            return false;
+            e.Use();
+        }
+    }
+
+    [HarmonyPatch(typeof(MapInterface), nameof(MapInterface.HandleLowPriorityInput))]
+    internal static class MapInterface_HandleLowPriorityInput_Remote_Patch
+    {
+        private static void Prefix()
+        {
+            RemoteRightClick.Handle();
+        }
+    }
+
+    [HarmonyPatch(typeof(Selector), nameof(Selector.SelectorOnGUI))]
+    internal static class Selector_SelectorOnGUI_Remote_Patch
+    {
+        private static void Prefix()
+        {
+            RemoteRightClick.Handle();
         }
     }
 

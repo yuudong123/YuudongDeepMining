@@ -67,7 +67,7 @@ public static class Program
         Console.WriteLine("patch classes: " + patchTypes.Count + ", patched methods: " + patched.Count);
 
         // principle checks: 원본 실행을 막는 Prefix(bool 반환)는 허용 목록만
-        var allowedSkipPrefix = new HashSet<string> { "Projectile_CanHit_Patch", "Selector_HandleMapClicks_Remote_Patch" };
+        var allowedSkipPrefix = new HashSet<string> { "Projectile_CanHit_Patch" };
         foreach (Type t in patchTypes)
         {
             foreach (MethodInfo m in t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
