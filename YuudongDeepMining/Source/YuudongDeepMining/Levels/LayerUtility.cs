@@ -18,6 +18,8 @@ namespace YuudongDeepMining
         public static JobDef YDM_HaulAcrossLayers;
         public static JobDef YDM_CarryThroughPortal;
         public static JobDef YDM_PlaceCarried;
+        public static JobDef YDM_RescueAcrossLayers;
+        public static JobDef YDM_CaptureAcrossLayers;
         public static KeyBindingDef YDM_LayerUp;
         public static KeyBindingDef YDM_LayerDown;
 
@@ -221,6 +223,41 @@ namespace YuudongDeepMining
             }
 
             return ArrivalCell(last, out Map _);
+        }
+
+        // 사다리 하나를 타는 데 드는 시간을 칸 수로 친 값 (사다리 앞 대기 90틱 ≈ 걸어서 7~8칸).
+        public const float HopCost = 8f;
+
+        // from 지도의 pos에서 target 지도의 targetCell까지 가는 대략 거리:
+        // 다음 사다리까지 직선거리 + 사다리 타기 + (층마다 반복) + 마지막 도착 칸에서 목표까지.
+        public static float TravelCost(Map from, IntVec3 pos, Map target, IntVec3 targetCell)
+        {
+            float cost = 0f;
+            Map map = from;
+            IntVec3 at = pos;
+            int guard = 0;
+            while (map != target)
+            {
+                MapPortal portal = NextPortalToward(map, target);
+                if (portal == null || guard++ > 32)
+                {
+                    return float.MaxValue;
+                }
+
+                cost += at.DistanceTo(portal.Position) + HopCost;
+                at = ArrivalCell(portal, out map);
+                if (!at.IsValid || map == null)
+                {
+                    return float.MaxValue;
+                }
+            }
+
+            if (targetCell.IsValid && targetCell.InBounds(target))
+            {
+                cost += at.DistanceTo(targetCell);
+            }
+
+            return cost;
         }
 
         public static bool AnyActiveColonist(Map map)

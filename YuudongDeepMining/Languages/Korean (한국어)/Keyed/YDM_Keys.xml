@@ -17,6 +17,10 @@
   <YDM.Settings.SmartRaidersDesc>지상에 활동 중인 정착민이 없고 지하에만 있을 때, 공병·돌파 전략을 쓰는 습격대는 갱도까지 길이 열리면 내려와 공격합니다. 다른 습격대는 지하를 알아채지 못합니다.</YDM.Settings.SmartRaidersDesc>
   <YDM.Settings.ShaftInvulnerable>갱도가 부서지지 않음</YDM.Settings.ShaftInvulnerable>
   <YDM.Settings.ShaftInvulnerableDesc>켜면 갱도가 피해를 받지 않습니다. 갱도가 파괴되면 아래층이 모두 무너지므로, 습격에 갱도를 잃고 싶지 않을 때 켜세요. 폐쇄는 그대로 할 수 있습니다.</YDM.Settings.ShaftInvulnerableDesc>
+  <YDM.Settings.DebugLog>층 판단 디버그 로그</YDM.Settings.DebugLog>
+  <YDM.Settings.DebugLogDesc>켜면 정착민이 다른 층의 일·욕구를 판단한 결과와 운반 판단 결과를 로그에 남깁니다. 문제를 찾을 때만 켜세요.</YDM.Settings.DebugLogDesc>
+  <YDM.RescueToLevel>{0}을(를) {1} 침대로 구조</YDM.RescueToLevel>
+  <YDM.CaptureToLevel>{0}을(를) {1} 감옥으로 포획</YDM.CaptureToLevel>
   <YDM.Surface>지상</YDM.Surface>
   <YDM.LayerN>지하 {0}층</YDM.LayerN>
   <YDM.GoDown>{0}(으)로 내려가기</YDM.GoDown>

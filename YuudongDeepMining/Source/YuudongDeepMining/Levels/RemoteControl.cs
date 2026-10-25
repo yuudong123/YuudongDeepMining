@@ -123,7 +123,8 @@ namespace YuudongDeepMining
         private static void DrawPanel(Map map, List<Map> chain)
         {
             float height = 28f + chain.Count * RowHeight + (remote.Count > 0 ? 58f : 0f);
-            Rect outer = new Rect(UI.screenWidth - PanelWidth - 8f, 8f, PanelWidth, height);
+            // 오른쪽 아래, 날짜·속도 컨트롤(GlobalControls) 왼쪽. 오른쪽 위는 알림 칸과 겹친다.
+            Rect outer = new Rect(UI.screenWidth - GlobalControls.Width - PanelWidth - 12f, UI.screenHeight - 35f - height - 8f, PanelWidth, height);
             Widgets.DrawWindowBackground(outer);
             Rect inner = outer.ContractedBy(5f);
             Text.Font = GameFont.Tiny;

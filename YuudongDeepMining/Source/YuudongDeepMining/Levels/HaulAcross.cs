@@ -23,7 +23,7 @@ namespace YuudongDeepMining
 
         private const int CacheTicks = 250;
 
-        // 이 물건을 받아줄 창고가 있는 다른 층 (가까운 층부터).
+        // 이 물건을 받아줄 창고가 있는 다른 층.
         public static Map StorageLayerFor(Thing t, Faction faction, Map from, bool useCache)
         {
             if (from == null)
@@ -38,14 +38,21 @@ namespace YuudongDeepMining
                 return entry.target;
             }
 
+            // 받아줄 창고가 있는 층 중, 물건 자리에서 그 창고 칸까지 실제로 가는 거리가 가장 짧은 층.
             Map found = null;
-            int here = LayerUtility.DepthOf(from);
-            foreach (Map other in LayerUtility.Chain(from).Where(m => m != from).OrderBy(m => Mathf.Abs(LayerUtility.DepthOf(m) - here)))
+            float bestCost = float.MaxValue;
+            foreach (Map other in LayerUtility.Chain(from))
             {
-                if (StoreUtility.TryFindBestBetterStoreCellFor(t, null, other, StoragePriority.Unstored, faction, out IntVec3 _, false))
+                if (other == from || !StoreUtility.TryFindBestBetterStoreCellFor(t, null, other, StoragePriority.Unstored, faction, out IntVec3 cell, false))
+                {
+                    continue;
+                }
+
+                float cost = LayerUtility.TravelCost(from, t.PositionHeld, other, cell);
+                if (cost < bestCost)
                 {
                     found = other;
-                    break;
+                    bestCost = cost;
                 }
             }
 
@@ -85,6 +92,16 @@ namespace YuudongDeepMining
             if (pawn.Map == order.target)
             {
                 comp.ClearOrder(pawn);
+                if (carried is Pawn takee)
+                {
+                    return CarryPawnsUtility.HandOffToVanilla(pawn, takee, order);
+                }
+
+                if (order.destination != null && order.destination.Spawned && order.destination.Map == pawn.Map)
+                {
+                    return BillSupplyUtility.DeliverJob(pawn, carried, order.destination);
+                }
+
                 if (!StoreUtility.TryFindBestBetterStoreCellFor(carried, pawn, pawn.Map, StoragePriority.Unstored, pawn.Faction, out IntVec3 cell))
                 {
                     return null;
@@ -129,16 +146,38 @@ namespace YuudongDeepMining
                     return;
                 }
 
+                // 목표 층: 이어 가는 중이면 그 층, 사람을 옮기면 데려갈 침대가 있는 층, 물건이면 받아줄 창고가 있는 층.
                 GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
-                Map target = comp?.GetOrder(pawn)?.kind == TravelKind.Haul ? comp.GetOrder(pawn).target : StorageLayerFor(carried, pawn.Faction, pawn.Map, false);
-                if (target == null)
+                TravelOrder current = comp?.GetOrder(pawn);
+                TravelOrder next = current?.kind == TravelKind.Haul ? current : new TravelOrder { kind = TravelKind.Haul };
+                if (next.target == null)
+                {
+                    if (carried is Pawn && driver.job.targetC.HasThing)
+                    {
+                        next.bed = driver.job.targetC.Thing;
+                        next.capture = driver.job.def == YDMDefOf.YDM_CaptureAcrossLayers;
+                        next.target = next.bed.MapHeld;
+                    }
+                    else if (driver.job.targetC.HasThing)
+                    {
+                        // 다른 층 작업대로 재료를 가져가는 중.
+                        next.destination = driver.job.targetC.Thing;
+                        next.target = next.destination.MapHeld;
+                    }
+                    else
+                    {
+                        next.target = StorageLayerFor(carried, pawn.Faction, pawn.Map, false);
+                    }
+                }
+
+                if (next.target == null || next.target == pawn.Map)
                 {
                     return;
                 }
 
                 if (TeleportCarrying(pawn, portal))
                 {
-                    comp?.SetOrder(pawn, new TravelOrder { target = target, kind = TravelKind.Haul });
+                    comp?.SetOrder(pawn, next);
                 }
             };
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
@@ -176,7 +215,9 @@ namespace YuudongDeepMining
 
             Map target = HaulAcrossUtility.StorageLayerFor(t, pawn.Faction, pawn.Map, true);
             MapPortal portal = LayerUtility.NextPortalToward(pawn.Map, target);
-            return portal != null && pawn.CanReserve(t, 1, -1, null, forced) && pawn.CanReach(portal, PathEndMode.Touch, Danger.Some);
+            bool ok = portal != null && pawn.CanReserve(t, 1, -1, null, forced) && pawn.CanReach(portal, PathEndMode.Touch, Danger.Some);
+            LayerDebug.Log(pawn, "haul " + t.LabelShort + ": " + (target == null ? "no storage on other levels" : portal == null ? "no portal" : ok ? "ok -> " + LayerUtility.LayerLabel(LayerUtility.DepthOf(target)) : "can't reserve/reach"));
+            return ok;
         }
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
@@ -245,7 +286,7 @@ namespace YuudongDeepMining
             this.FailOn(() => pawn.carryTracker.CarriedThing == null);
             Toil carryToCell = Toils_Goto.GotoCell(TargetIndex.A, PathEndMode.ClosestTouch);
             yield return carryToCell;
-            yield return Toils_Haul.PlaceHauledThingInCell(TargetIndex.A, carryToCell, true);
+            yield return Toils_Haul.PlaceHauledThingInCell(TargetIndex.A, carryToCell, job.haulMode != HaulMode.ToCellNonStorage);
         }
     }
 }

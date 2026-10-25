@@ -17,6 +17,10 @@
   <YDM.Settings.SmartRaidersDesc>When no active colonists are on the surface but some are underground, raiders using the sapper or breacher strategy climb down the shaft once they can reach it. Other raiders never notice the underground levels.</YDM.Settings.SmartRaidersDesc>
   <YDM.Settings.ShaftInvulnerable>Mine shafts are indestructible</YDM.Settings.ShaftInvulnerable>
   <YDM.Settings.ShaftInvulnerableDesc>Mine shafts take no damage. A destroyed shaft collapses every level below it, so turn this on if you don't want to risk losing them in a raid. You can still seal them.</YDM.Settings.ShaftInvulnerableDesc>
+  <YDM.Settings.DebugLog>Level decision debug log</YDM.Settings.DebugLog>
+  <YDM.Settings.DebugLogDesc>Logs what colonists found when checking other levels for work and needs, and hauling decisions. Turn on only when tracking down a problem.</YDM.Settings.DebugLogDesc>
+  <YDM.RescueToLevel>Rescue {0} to a bed on {1}</YDM.RescueToLevel>
+  <YDM.CaptureToLevel>Capture {0} to a prison on {1}</YDM.CaptureToLevel>
   <YDM.Surface>surface</YDM.Surface>
   <YDM.LayerN>underground level {0}</YDM.LayerN>
   <YDM.GoDown>Go down to {0}</YDM.GoDown>

@@ -59,6 +59,48 @@
     <dropThingBeforeJob>false</dropThingBeforeJob>
   </JobDef>
 
+  <!-- 사람 옮기기: 쓰러진 림을 들고 사다리를 넘은 뒤, 도착한 층에서 바닐라 구조·포획 작업으로 넘긴다. -->
+  <JobDef>
+    <defName>YDM_RescueAcrossLayers</defName>
+    <driverClass>YuudongDeepMining.JobDriver_HaulAcrossLayers</driverClass>
+    <reportString>carrying TargetA to a bed on another level.</reportString>
+    <carryThingAfterJob>true</carryThingAfterJob>
+  </JobDef>
+
+  <JobDef>
+    <defName>YDM_CaptureAcrossLayers</defName>
+    <driverClass>YuudongDeepMining.JobDriver_HaulAcrossLayers</driverClass>
+    <reportString>carrying TargetA to a prison on another level.</reportString>
+    <carryThingAfterJob>true</carryThingAfterJob>
+  </JobDef>
+
+  <WorkGiverDef>
+    <defName>YDM_RescueAcrossLayers</defName>
+    <label>rescue downed allies to a bed on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_RescueAcrossLayers</giverClass>
+    <workType>Doctor</workType>
+    <verb>rescue</verb>
+    <gerund>rescuing</gerund>
+    <priorityInType>59</priorityInType>
+    <directOrderable>false</directOrderable>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Hauling</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>13</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
   <WorkGiverDef>
     <defName>YDM_HaulAcrossLayers</defName>
     <label>haul to another level</label>
@@ -94,6 +136,14 @@
         <li Class="YuudongDeepMining.JobGiver_LayerIdle" />
       </subNodes>
     </thinkRoot>
+  </ThinkTreeDef>
+
+  <!-- 동물: 주인이 다른 층에 있고 바닐라 '따라가기' 조건을 만족하면 사다리를 타고 따라간다. -->
+  <ThinkTreeDef>
+    <defName>YDM_AnimalFollowAcrossLayers</defName>
+    <insertTag>Animal_PreMain</insertTag>
+    <insertPriority>100</insertPriority>
+    <thinkRoot Class="YuudongDeepMining.JobGiver_AnimalFollowAcrossLayers" />
   </ThinkTreeDef>
 
   <KeyBindingDef>

@@ -17,6 +17,8 @@ namespace YuudongDeepMining
         Haul,
         // 플레이어가 다른 층에서 내린 명령.
         Remote,
+        // 이 층에서는 채울 수 없는 욕구(잠·식사·오락 등)를 다른 층에서 채우러 간다.
+        Need,
     }
 
     public class TravelOrder : IExposable
@@ -29,6 +31,13 @@ namespace YuudongDeepMining
         public IntVec3 cell = IntVec3.Invalid;
         public bool move;
 
+        // 사람을 옮길 때: 도착하면 이 침대로 바닐라 구조(또는 포획) 작업을 시킨다.
+        public Thing bed;
+        public bool capture;
+
+        // 재료를 옮길 때: 도착하면 이 작업대 옆에 내려놓는다.
+        public Thing destination;
+
         public void ExposeData()
         {
             Scribe_References.Look(ref target, "target");
@@ -36,6 +45,9 @@ namespace YuudongDeepMining
             Scribe_Values.Look(ref label, "label");
             Scribe_Values.Look(ref cell, "cell", IntVec3.Invalid);
             Scribe_Values.Look(ref move, "move", false);
+            Scribe_References.Look(ref bed, "bed");
+            Scribe_Values.Look(ref capture, "capture", false);
+            Scribe_References.Look(ref destination, "destination");
         }
     }
 
@@ -59,7 +71,7 @@ namespace YuudongDeepMining
         private List<TravelOrder> tmpOrders;
 
         private readonly Dictionary<Pawn, Job> issuedRemoteJobs = new Dictionary<Pawn, Job>();
-        private readonly Dictionary<Pawn, int> lastScan = new Dictionary<Pawn, int>();
+        private readonly Dictionary<(Pawn, object), int> lastScan = new Dictionary<(Pawn, object), int>();
         private readonly Dictionary<Pawn, KeyValuePair<Map, int>> workArrivals = new Dictionary<Pawn, KeyValuePair<Map, int>>();
         private readonly Dictionary<Pawn, Dictionary<Map, int>> wasted = new Dictionary<Pawn, Dictionary<Map, int>>();
 
@@ -103,15 +115,21 @@ namespace YuudongDeepMining
             issuedRemoteJobs.Remove(pawn);
         }
 
-        public bool ScanDue(Pawn pawn)
+        // 같은 림·같은 판단(작업, 또는 욕구 노드 종류)마다 다른 층 확인 간격을 둔다.
+        public bool ScanDue(Pawn pawn, object key)
         {
             int now = Find.TickManager.TicksGame;
-            if (lastScan.TryGetValue(pawn, out int last) && now - last < ScanInterval)
+            if (lastScan.TryGetValue((pawn, key), out int last) && now - last < ScanInterval)
             {
                 return false;
             }
 
-            lastScan[pawn] = now;
+            if (lastScan.Count > 4096)
+            {
+                lastScan.Clear();
+            }
+
+            lastScan[(pawn, key)] = now;
             return true;
         }
 
@@ -316,20 +334,6 @@ namespace YuudongDeepMining
             return rest != null && rest.CurCategory >= RestCategory.Tired;
         }
 
-        // 지하에서 배고프거나 졸린데 이 층에 먹을 것·침대가 없다.
-        public static bool NeedsToGoUp(Pawn pawn, Map map)
-        {
-            Need_Food food = pawn.needs?.food;
-            if (food != null && food.CurCategory >= HungerCategory.Hungry
-                && !FoodUtility.TryFindBestFoodSourceFor(pawn, pawn, food.CurCategory == HungerCategory.Starving, out Thing _, out ThingDef _, allowCorpse: false))
-            {
-                return true;
-            }
-
-            Need_Rest rest = pawn.needs?.rest;
-            return rest != null && rest.CurCategory >= RestCategory.Tired && RestUtility.FindBedFor(pawn) == null;
-        }
-
         // 바닐라 작업 탐색과 같은 순서로 일의 순위를 매긴다 (작은 수가 먼저).
         // 바닐라는 우선순위 순으로 정렬된 작업 목록을 앞에서부터 보며, priorityInType이 같은 연속 묶음 안에서는 가까운 일을 고른다.
         // 그래서 순위는 그 일을 낸 작업이 속한 묶음의 시작 위치다. 어느 작업에서 나온 일인지 모르면 0(가장 앞)으로 쳐서 그대로 둔다.
@@ -374,9 +378,7 @@ namespace YuudongDeepMining
         }
     }
 
-    // 생각 트리 앞쪽(Humanlike_PreMain, 일·욕구보다 먼저):
-    //  1) 지하에서 배고프거나 졸린데 이 층에 먹을 것·침대가 없으면 한 층 올라간다.
-    //  2) 진행 중인 층 이동(일하러 가기·집으로·운반)을 한 층씩 이어 간다.
+    // 생각 트리 앞쪽(Humanlike_PreMain, 일·욕구보다 먼저): 진행 중인 층 이동(일·욕구·집·운반)을 한 층씩 이어 간다.
     public class JobGiver_LayerTravel : ThinkNode_JobGiver
     {
         protected override Job TryGiveJob(Pawn pawn)
@@ -399,12 +401,6 @@ namespace YuudongDeepMining
                 return HaulAcrossUtility.ContinueHaul(pawn, order, comp);
             }
 
-            if (LayerUtility.IsLayer(map) && LayerTravelUtility.NeedsToGoUp(pawn, map))
-            {
-                comp?.ClearOrder(pawn);
-                return LayerTravelUtility.EnterJob(pawn, LayerUtility.UpExit(map));
-            }
-
             if (order == null)
             {
                 return null;
@@ -421,7 +417,8 @@ namespace YuudongDeepMining
                 return null;
             }
 
-            if (LayerTravelUtility.HasUrgentNeed(pawn))
+            // 욕구를 채우러 가는 길이 아니면, 배고프거나 졸릴 때는 바닐라 욕구 판단에 먼저 맡긴다.
+            if (order.kind != TravelKind.Need && LayerTravelUtility.HasUrgentNeed(pawn))
             {
                 return null;
             }
@@ -498,33 +495,127 @@ namespace YuudongDeepMining
             }
 
             int rankHere = LayerTravelUtility.Rank(pawn, __result.Job);
-            if (rankHere == 0 || !comp.ScanDue(pawn))
+            if (rankHere == 0 || !comp.ScanDue(pawn, typeof(JobGiver_Work)))
             {
                 return;
             }
 
+            // 모든 다른 층을 바닐라로 판단해 보고, 순위가 가장 앞서는 일을 고른다. 순위가 같으면 실제로 가는 거리가 짧은 층.
             Map map = pawn.Map;
-            int here = LayerUtility.DepthOf(map);
-            foreach (Map other in LayerUtility.Chain(map).Where(m => m != map).OrderBy(m => Mathf.Abs(LayerUtility.DepthOf(m) - here)))
+            Map best = null;
+            int bestRank = rankHere;
+            float bestCost = float.MaxValue;
+            foreach (Map other in LayerUtility.Chain(map))
             {
-                if (comp.IsWasted(pawn, other))
+                if (other == map || comp.IsWasted(pawn, other))
                 {
                     continue;
                 }
 
                 Job there = LayerTravelUtility.ProbeWorkOn(__instance, pawn, other);
-                if (there == null || LayerTravelUtility.Rank(pawn, there) >= rankHere)
+                int rank = LayerTravelUtility.Rank(pawn, there);
+                float cost = there == null ? float.MaxValue : LayerUtility.TravelCost(map, pawn.Position, other, there.targetA.Cell);
+                LayerDebug.Log(pawn, "work on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there == null ? "none" : there.def.defName + " (" + there.workGiverDef?.defName + ", rank " + rank + ", cost " + cost.ToString("0") + ")") + " vs here rank " + rankHere);
+                if (there != null && (rank < bestRank || (rank == bestRank && best != null && cost < bestCost)))
+                {
+                    best = other;
+                    bestRank = rank;
+                    bestCost = cost;
+                }
+            }
+
+            Job go = best == null ? null : LayerTravelUtility.EnterJob(pawn, LayerUtility.NextPortalToward(map, best));
+            if (go != null)
+            {
+                comp.SetOrder(pawn, new TravelOrder { target = best, kind = TravelKind.Work });
+                __result = new ThinkResult(go, __instance, JobTag.Misc);
+            }
+        }
+    }
+
+    // 층 묶음을 한 정착지로: 정착민 핵심 행동 트리(MainColonistBehaviorCore)의 욕구·행동 판단 노드(먹기·잠·오락·약 등)가
+    // 이 층에서 답을 못 내거나 바닐라의 차선책(침대 없이 바닥에서 자기)을 내면, 같은 노드로 다른 층을 판단해 본다(고스트 판정).
+    // 다른 층에서 제대로 된 답이 나오면 그 층으로 간다. 어떤 노드인지 하나하나 정하지 않고, 그 트리에 들어 있는 노드 종류를 그대로 쓴다.
+    [HarmonyLib.HarmonyPatch(typeof(ThinkNode_JobGiver), nameof(ThinkNode_JobGiver.TryIssueJobPackage))]
+    internal static class ThinkNode_JobGiver_AcrossLayers_Patch
+    {
+        private static HashSet<System.Type> coreTypes;
+
+        private static HashSet<System.Type> CoreTypes
+        {
+            get
+            {
+                if (coreTypes == null)
+                {
+                    coreTypes = new HashSet<System.Type>();
+                    ThinkTreeDef core = DefDatabase<ThinkTreeDef>.GetNamedSilentFail("MainColonistBehaviorCore");
+                    if (core?.thinkRoot != null)
+                    {
+                        foreach (ThinkNode node in core.thinkRoot.ChildrenRecursive)
+                        {
+                            if (node is ThinkNode_JobGiver)
+                            {
+                                coreTypes.Add(node.GetType());
+                            }
+                        }
+                    }
+                }
+
+                return coreTypes;
+            }
+        }
+
+        // 바닐라가 마땅한 답이 없을 때 내는 차선책.
+        private static bool IsFallback(Job job)
+        {
+            return job != null && job.def == JobDefOf.LayDown && !(job.targetA.Thing is Building_Bed);
+        }
+
+        private static void Postfix(ThinkNode_JobGiver __instance, Pawn pawn, JobIssueParams jobParams, ref ThinkResult __result)
+        {
+            if (GhostUtility.Active || (__result.IsValid && !IsFallback(__result.Job)) || !CoreTypes.Contains(__instance.GetType()) || !LayerTravelUtility.CanUseLayers(pawn))
+            {
+                return;
+            }
+
+            GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
+            if (comp == null || comp.GetOrder(pawn) != null || !comp.ScanDue(pawn, __instance.GetType()))
+            {
+                return;
+            }
+
+            // 모든 다른 층을 같은 노드로 판단해 보고, 제대로 된 답이 나온 층 중 실제로 가는 거리가 가장 짧은 층으로 간다.
+            Map map = pawn.Map;
+            Map best = null;
+            float bestCost = float.MaxValue;
+            foreach (Map other in LayerUtility.Chain(map))
+            {
+                IntVec3 cell = other == map ? IntVec3.Invalid : LayerUtility.ArrivalCellOn(map, other);
+                if (!cell.IsValid)
                 {
                     continue;
                 }
 
-                Job go = LayerTravelUtility.EnterJob(pawn, LayerUtility.NextPortalToward(map, other));
-                if (go != null)
+                Job there = GhostUtility.Run(pawn, other, cell, () => __instance.TryIssueJobPackage(pawn, jobParams).Job, null);
+                LayerDebug.Log(pawn, "need " + __instance.GetType().Name + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there?.def.defName ?? "none"));
+                if (there == null || IsFallback(there))
                 {
-                    comp.SetOrder(pawn, new TravelOrder { target = other, kind = TravelKind.Work });
-                    __result = new ThinkResult(go, __instance, JobTag.Misc);
-                    return;
+                    continue;
                 }
+
+                float cost = LayerUtility.TravelCost(map, pawn.Position, other, there.targetA.Cell);
+                if (cost < bestCost)
+                {
+                    best = other;
+                    bestCost = cost;
+                }
+            }
+
+            Job go = best == null ? null : LayerTravelUtility.EnterJob(pawn, LayerUtility.NextPortalToward(map, best));
+            if (go != null)
+            {
+                comp.SetOrder(pawn, new TravelOrder { target = best, kind = TravelKind.Need });
+                __result = new ThinkResult(go, __instance, JobTag.Misc);
             }
         }
     }
