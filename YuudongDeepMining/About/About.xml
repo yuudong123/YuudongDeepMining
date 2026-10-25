@@ -27,7 +27,7 @@ Features
 - Underground levels are dark cave maps full of rock. The deeper you go, the more ore veins there are and the more valuable the ore gets.
 - Harder rock: rock and ore get tougher with every level (+50% per level, stops increasing at level 4 by default).
 - Infestations: underground levels with colonists on them get insect infestations, more often the deeper you go (with a cap).
-- Colonists work across levels: when there is nothing to do on their level, they find work on the other levels connected by the shaft (using the normal vanilla work search) and climb the ladders to do it. Haulers carry ore and other items up or down to wherever there is storage for them.
+- Colonists work across levels: the normal vanilla work search also looks at the other levels connected by the shaft, and when a job there comes first by your work priorities, colonists climb the ladders to do it. Haulers carry ore and other items up or down to wherever there is storage for them.
 - Home level: give each colonist a level to mainly stay on. They go out when there is work elsewhere and come back once idle. If they get hungry or tired and there is no food or bed on that level, they go up.
 - Level panel: switch between levels with the panel at the top right (or the = and - keys). Colonists you had selected stay selected from the other level, so you can right-click to give them any order there, from moving to prioritizing a workbench. They climb the ladders and carry it out when they arrive.
 - Sealing a shaft, or losing it, collapses every level below it. Everything down there is lost, and anyone still below is buried alive. A sealed shaft stays behind, filled with earth and boarded over; deconstruct it to clear the spot.

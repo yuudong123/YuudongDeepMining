@@ -330,18 +330,47 @@ namespace YuudongDeepMining
             return rest != null && rest.CurCategory >= RestCategory.Tired && RestUtility.FindBedFor(pawn) == null;
         }
 
-        // 바닐라 작업 탐색을 다른 층 사다리 앞에서 해 본다 (고스트 판정).
-        private static readonly JobGiver_Work ProbeWork = new JobGiver_Work();
+        // 바닐라 작업 탐색과 같은 순서로 일의 순위를 매긴다 (작은 수가 먼저).
+        // 바닐라는 우선순위 순으로 정렬된 작업 목록을 앞에서부터 보며, priorityInType이 같은 연속 묶음 안에서는 가까운 일을 고른다.
+        // 그래서 순위는 그 일을 낸 작업이 속한 묶음의 시작 위치다. 어느 작업에서 나온 일인지 모르면 0(가장 앞)으로 쳐서 그대로 둔다.
+        public static int Rank(Pawn pawn, Job job)
+        {
+            if (job == null)
+            {
+                return int.MaxValue;
+            }
 
-        public static bool HasWorkOn(Pawn pawn, Map target)
+            WorkGiverDef def = job.workGiverDef;
+            List<WorkGiver> list = pawn.workSettings?.WorkGiversInOrderNormal;
+            if (def == null || list == null)
+            {
+                return 0;
+            }
+
+            int index = list.FindIndex(g => g.def == def);
+            if (index < 0)
+            {
+                return 0;
+            }
+
+            while (index > 0 && list[index - 1].def.priorityInType == list[index].def.priorityInType)
+            {
+                index--;
+            }
+
+            return index;
+        }
+
+        // 바닐라 작업 탐색을 다른 층 사다리 앞에서 해 본다 (고스트 판정).
+        public static Job ProbeWorkOn(JobGiver_Work giver, Pawn pawn, Map target)
         {
             IntVec3 cell = LayerUtility.ArrivalCellOn(pawn.Map, target);
             if (!cell.IsValid)
             {
-                return false;
+                return null;
             }
 
-            return GhostUtility.Run(pawn, target, cell, () => ProbeWork.TryIssueJobPackage(pawn, default(JobIssueParams)).Job != null, false);
+            return GhostUtility.Run(pawn, target, cell, () => giver.TryIssueJobPackage(pawn, default(JobIssueParams)).Job, null);
         }
     }
 
@@ -407,9 +436,8 @@ namespace YuudongDeepMining
         }
     }
 
-    // 생각 트리 뒤쪽(Humanlike_PostMain, 이 층에 할 일이 없을 때):
-    //  1) 갱도로 이어진 다른 층에 할 일이 있으면 그 층으로 간다 (가까운 층부터, 바닐라 작업 탐색 그대로).
-    //  2) 없으면 주로 머무는 층으로 돌아간다.
+    // 생각 트리 뒤쪽(Humanlike_PostMain, 어느 층에도 할 일이 없을 때): 주로 머무는 층으로 돌아간다.
+    // 다른 층 일거리로 가는 판단은 바닐라 작업 탐색 패치(JobGiver_Work_LayerWork_Patch)가 한다.
     public class JobGiver_LayerIdle : ThinkNode_JobGiver
     {
         protected override Job TryGiveJob(Pawn pawn)
@@ -428,24 +456,6 @@ namespace YuudongDeepMining
             Map map = pawn.Map;
             comp.CheckWastedTrip(pawn);
             int here = LayerUtility.DepthOf(map);
-            if (comp.ScanDue(pawn))
-            {
-                foreach (Map other in LayerUtility.Chain(map).Where(m => m != map).OrderBy(m => Mathf.Abs(LayerUtility.DepthOf(m) - here)))
-                {
-                    if (comp.IsWasted(pawn, other) || !LayerTravelUtility.HasWorkOn(pawn, other))
-                    {
-                        continue;
-                    }
-
-                    Job job = LayerTravelUtility.EnterJob(pawn, LayerUtility.NextPortalToward(map, other));
-                    if (job != null)
-                    {
-                        comp.SetOrder(pawn, new TravelOrder { target = other, kind = TravelKind.Work });
-                        return job;
-                    }
-                }
-            }
-
             int home = comp.GetHome(pawn);
             if (home == GameComponent_LayerTravel.Free || home == here)
             {
@@ -466,6 +476,56 @@ namespace YuudongDeepMining
             }
 
             return homeJob;
+        }
+    }
+
+    // 바닐라 작업 탐색이 이 층에서 고른 일과, 갱도로 이어진 다른 층에서 고를 일을 바닐라 순서로 비교한다.
+    // 다른 층 일이 순서상 앞서면 (또는 이 층에 일이 없으면) 그 층으로 간다. 같은 묶음이면 가까운 이 층 일을 한다.
+    [HarmonyLib.HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
+    internal static class JobGiver_Work_LayerWork_Patch
+    {
+        private static void Postfix(JobGiver_Work __instance, Pawn pawn, ref ThinkResult __result)
+        {
+            if (__instance.emergency || GhostUtility.Active || !LayerTravelUtility.CanUseLayers(pawn))
+            {
+                return;
+            }
+
+            GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
+            if (comp == null || comp.GetOrder(pawn) != null)
+            {
+                return;
+            }
+
+            int rankHere = LayerTravelUtility.Rank(pawn, __result.Job);
+            if (rankHere == 0 || !comp.ScanDue(pawn))
+            {
+                return;
+            }
+
+            Map map = pawn.Map;
+            int here = LayerUtility.DepthOf(map);
+            foreach (Map other in LayerUtility.Chain(map).Where(m => m != map).OrderBy(m => Mathf.Abs(LayerUtility.DepthOf(m) - here)))
+            {
+                if (comp.IsWasted(pawn, other))
+                {
+                    continue;
+                }
+
+                Job there = LayerTravelUtility.ProbeWorkOn(__instance, pawn, other);
+                if (there == null || LayerTravelUtility.Rank(pawn, there) >= rankHere)
+                {
+                    continue;
+                }
+
+                Job go = LayerTravelUtility.EnterJob(pawn, LayerUtility.NextPortalToward(map, other));
+                if (go != null)
+                {
+                    comp.SetOrder(pawn, new TravelOrder { target = other, kind = TravelKind.Work });
+                    __result = new ThinkResult(go, __instance, JobTag.Misc);
+                    return;
+                }
+            }
         }
     }
 }
