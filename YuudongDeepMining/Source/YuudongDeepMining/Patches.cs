@@ -60,7 +60,7 @@ namespace YuudongDeepMining
 
             if (__instance.IsColonistPlayerControlled && __instance.Spawned && LayerUtility.AnyLayerExists())
             {
-                yield return LayerAssignmentUtility.MakeGizmo(__instance);
+                yield return LayerHomeGizmo.Make(__instance);
             }
         }
     }

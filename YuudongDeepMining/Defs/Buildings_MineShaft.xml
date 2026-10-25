@@ -59,34 +59,55 @@
     <constructionSkillPrerequisite>4</constructionSkillPrerequisite>
   </ThingDef>
 
-  <ThingDef ParentName="YDM_MineShaftBase">
-    <defName>YDM_MineShaftDeep</defName>
-    <label>deep mine shaft</label>
-    <description>A heavily braced shaft sunk from an underground level down to the next one. The deeper rock takes far more material and time to shore up.\n\nOnly one shaft can be built per level. Sealing or destroying the shaft collapses every level below it: everything inside is lost and every creature down there is crushed.</description>
+  <!-- 폐쇄된 갱도: 갱도를 폐쇄하면 그 자리에 남는다. 짓지는 못하고, 해체해서 자리를 비울 수 있다. -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>YDM_SealedShaft</defName>
+    <label>sealed mine shaft</label>
+    <description>A mine shaft that has been filled with earth and boarded over. Everything that was below it is gone for good.
+
+Deconstruct it to clear the spot.</description>
+    <size>(2,2)</size>
+    <rotatable>false</rotatable>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
+    <passability>Standable</passability>
+    <pathCost>14</pathCost>
+    <canOverlapZones>false</canOverlapZones>
+    <graphicData>
+      <graphicClass>Graphic_Single</graphicClass>
+      <texPath>YDM/SealedShaft</texPath>
+      <drawSize>(2.41,2.41)</drawSize>
+    </graphicData>
+    <uiIconPath>YDM/SealedShaft</uiIconPath>
     <statBases>
-      <MaxHitPoints>2000</MaxHitPoints>
-      <WorkToBuild>16000</WorkToBuild>
+      <MaxHitPoints>300</MaxHitPoints>
+      <WorkToBuild>1500</WorkToBuild>
       <Flammability>0</Flammability>
-      <Beauty>-5</Beauty>
+      <Beauty>-3</Beauty>
     </statBases>
     <costList>
-      <Steel>200</Steel>
-      <WoodLog>250</WoodLog>
-      <ComponentIndustrial>4</ComponentIndustrial>
+      <WoodLog>30</WoodLog>
     </costList>
-    <constructionSkillPrerequisite>8</constructionSkillPrerequisite>
+    <building>
+      <isEdifice>false</isEdifice>
+      <claimable>false</claimable>
+      <expandHomeArea>false</expandHomeArea>
+      <ai_chillDestination>false</ai_chillDestination>
+      <ai_neverTrashThis>true</ai_neverTrashThis>
+    </building>
   </ThingDef>
 
   <ThingDef ParentName="PocketMapExit">
     <defName>YDM_MineShaftExit</defName>
-    <label>shaft stairs</label>
-    <description>Stairs leading back up the mine shaft. Haulers send resources that have nowhere to be stored on this level up these stairs; choose which ones in the storage tab.</description>
+    <label>shaft ladder</label>
+    <description>A ladder leading back up the mine shaft.</description>
     <thingClass>YuudongDeepMining.Building_MineShaftExit</thingClass>
     <size>(2,2)</size>
     <altitudeLayer>FloorEmplacement</altitudeLayer>
     <graphicData>
       <graphicClass>Graphic_Single</graphicClass>
       <texPath>YDM/MineShaftExit</texPath>
+      <!-- 사다리 윗부분이 천장 빛 속으로 부드럽게 사라지도록 반투명을 그대로 그린다 (기본 Cutout은 반투명을 잘라 깨져 보임). -->
+      <shaderType>Transparent</shaderType>
       <!-- 나무 틀이 2x2를 덮고, 사다리는 위쪽으로 길게 나온다. -->
       <drawSize>(3.43,3.43)</drawSize>
     </graphicData>
@@ -94,9 +115,6 @@
     <statBases>
       <Flammability>0</Flammability>
     </statBases>
-    <inspectorTabs>
-      <li>ITab_Storage</li>
-    </inspectorTabs>
     <comps>
       <li Class="CompProperties_Glower">
         <glowRadius>7</glowRadius>

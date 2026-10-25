@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <YDM_HaulUpShaft.reportString>TargetA을(를) 갱도 위로 올려 보내는 중.</YDM_HaulUpShaft.reportString>
+  <YDM_HaulAcrossLayers.reportString>TargetA을(를) 다른 층으로 나르는 중.</YDM_HaulAcrossLayers.reportString>
+  <YDM_CarryThroughPortal.reportString>물건을 들고 TargetA을(를) 지나는 중.</YDM_CarryThroughPortal.reportString>
+  <YDM_PlaceCarried.reportString>들고 온 물건을 보관하는 중.</YDM_PlaceCarried.reportString>
 
 </LanguageData>

@@ -36,15 +36,18 @@
   <YDM.CollapsedLetterText>갱도가 무너져 {0}와(과) 그 아래층이 사라졌습니다.</YDM.CollapsedLetterText>
   <YDM.CollapsedLetterLost>무너진 갱도에 깔려 죽음:</YDM.CollapsedLetterLost>
   <YDM.CollapsedLetterItems>물건 {0}개가 함께 묻혔습니다.</YDM.CollapsedLetterItems>
-  <YDM.AutoHaulUp>자원 올려 보내기</YDM.AutoHaulUp>
-  <YDM.AutoHaulUpDesc>켜면 이 층에 보관할 곳이 없는 물건 중 '저장소' 탭에서 고른 것을 운반꾼이 이 계단으로 올려 보냅니다. 물건은 위층 갱도 옆에 놓입니다.</YDM.AutoHaulUpDesc>
   <YDM.RaidersDescending>{0}의 습격대가 갱도를 타고 지하로 내려오고 있습니다!</YDM.RaidersDescending>
-  <YDM.SurfaceOnly>지상에만 지을 수 있습니다. 지하에서는 깊은 갱도를 지으세요</YDM.SurfaceOnly>
-  <YDM.UndergroundOnly>지하 층에서만 지을 수 있습니다</YDM.UndergroundOnly>
   <YDM.MaxDepthReached>더 내려갈 수 없습니다 (최대 깊이: 지하 {0}층)</YDM.MaxDepthReached>
   <YDM.OneShaftPerMap>이 지도에는 이미 갱도가 있습니다</YDM.OneShaftPerMap>
   <YDM.AssignFree>자유</YDM.AssignFree>
-  <YDM.AssignLabel>작업 층: {0}</YDM.AssignLabel>
-  <YDM.AssignDesc>이 정착민이 지낼 층을 정합니다. 정하면 계단을 타고 그 층으로 가서 일합니다. 배고프거나 졸린데 그 층에 먹을 것이나 침대가 없으면 위로 올라왔다가 해결한 뒤 다시 내려갑니다.\n\n자유: 층을 옮기지 않습니다 (직접 계단으로 보낼 때만 이동).</YDM.AssignDesc>
+  <YDM.AssignLabel>주로 머무는 층: {0}</YDM.AssignLabel>
+  <YDM.AssignDesc>이 정착민이 주로 머무는 층을 정합니다. 평소에는 그 층에 머물다가, 그 층에 할 일이 없고 갱도로 이어진 다른 층에 할 일이 있으면 사다리를 타고 가서 일하고, 한가해지면 돌아옵니다. 배고프거나 졸린데 그 층에 먹을 것이나 침대가 없으면 위로 올라갑니다.\n\n자유: 머무는 층 없이, 일을 따라 옮긴 층에 그대로 머뭅니다.</YDM.AssignDesc>
+  <YDM.LayerPanelTitle>갱도 층</YDM.LayerPanelTitle>
+  <YDM.LayerPanelTip>눌러서 그 층을 봅니다. 선택한 림은 원격 선택으로 남아, 이 층을 우클릭해 명령할 수 있습니다. 림은 사다리를 타고 와서 명령을 수행합니다.\n\n단축키: 위층 {0}, 아래층 {1}</YDM.LayerPanelTip>
+  <YDM.RemoteSelected>다른 층에서 선택됨: {0}</YDM.RemoteSelected>
+  <YDM.RemoteMoveHere>사다리 타고 와서 여기로 이동</YDM.RemoteMoveHere>
+  <YDM.RemoteMenuTitle>{0} (다른 층: 도착하면 실행)</YDM.RemoteMenuTitle>
+  <YDM.RemoteMenuTitleMulti>{0}명 (다른 층: 도착하면 실행)</YDM.RemoteMenuTitleMulti>
+  <YDM.RemoteOrderFailed>{0}이(가) 도착했지만 지금은 할 수 없습니다: {1}</YDM.RemoteOrderFailed>
 
 </LanguageData>

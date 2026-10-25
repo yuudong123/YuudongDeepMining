@@ -4,29 +4,15 @@ using Verse;
 
 namespace YuudongDeepMining
 {
-    // 지상 갱도는 지상(지하 층이 아닌 지도)에만, 지하 갱도는 최대 깊이보다 위인 지하 층에만 짓는다. 지도마다 갱도는 하나.
+    // 갱도는 지도마다 하나. 지하 층에서는 최대 깊이보다 위인 층에만 짓는다.
     public class PlaceWorker_MineShaft : PlaceWorker
     {
         public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
         {
-            ThingDef def = checkingDef as ThingDef;
-            bool isLayer = LayerUtility.IsLayer(map);
-            if (def == YDMDefOf.YDM_MineShaft && isLayer)
+            // 지상이든 지하 층이든 지을 수 있다. 지하 층에서는 최대 깊이보다 위일 때만.
+            if (LayerUtility.IsLayer(map) && LayerUtility.DepthOf(map) >= DeepMiningMod.Settings.maxDepth)
             {
-                return "YDM.SurfaceOnly".Translate();
-            }
-
-            if (def == YDMDefOf.YDM_MineShaftDeep)
-            {
-                if (!isLayer)
-                {
-                    return "YDM.UndergroundOnly".Translate();
-                }
-
-                if (LayerUtility.DepthOf(map) >= DeepMiningMod.Settings.maxDepth)
-                {
-                    return "YDM.MaxDepthReached".Translate(DeepMiningMod.Settings.maxDepth);
-                }
+                return "YDM.MaxDepthReached".Translate(DeepMiningMod.Settings.maxDepth);
             }
 
             if (AlreadyHasShaft(map, thingToIgnore))
@@ -39,7 +25,7 @@ namespace YuudongDeepMining
 
         private static bool AlreadyHasShaft(Map map, Thing ignore)
         {
-            foreach (Thing t in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaft).Concat(map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaftDeep)))
+            foreach (Thing t in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaft))
             {
                 if (t != ignore)
                 {

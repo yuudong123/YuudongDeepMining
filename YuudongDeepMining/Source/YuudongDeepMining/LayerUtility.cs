@@ -10,12 +10,16 @@ namespace YuudongDeepMining
     public static class YDMDefOf
     {
         public static ThingDef YDM_MineShaft;
-        public static ThingDef YDM_MineShaftDeep;
+        public static ThingDef YDM_SealedShaft;
         public static ThingDef YDM_MineShaftExit;
         public static MapGeneratorDef YDM_Underground;
         public static DamageDef YDM_CaveIn;
         public static DutyDef YDM_EnterShaft;
-        public static JobDef YDM_HaulUpShaft;
+        public static JobDef YDM_HaulAcrossLayers;
+        public static JobDef YDM_CarryThroughPortal;
+        public static JobDef YDM_PlaceCarried;
+        public static KeyBindingDef YDM_LayerUp;
+        public static KeyBindingDef YDM_LayerDown;
 
         static YDMDefOf()
         {
@@ -48,7 +52,7 @@ namespace YuudongDeepMining
 
         public static bool IsShaftDef(ThingDef def)
         {
-            return def == YDMDefOf.YDM_MineShaft || def == YDMDefOf.YDM_MineShaftDeep;
+            return def == YDMDefOf.YDM_MineShaft;
         }
 
         // 이 지도에서 아래층으로 내려가는 갱도 (지도마다 하나).
@@ -60,11 +64,6 @@ namespace YuudongDeepMining
             }
 
             foreach (Thing thing in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaft))
-            {
-                return (Building_MineShaft)thing;
-            }
-
-            foreach (Thing thing in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaftDeep))
             {
                 return (Building_MineShaft)thing;
             }
@@ -119,6 +118,109 @@ namespace YuudongDeepMining
             }
 
             return depth;
+        }
+
+        // 갱도로 이어진 줄의 맨 위 지도 (지상).
+        public static Map Root(Map map)
+        {
+            int guard = 0;
+            while (map != null && guard++ < 64)
+            {
+                Map above = MapAbove(map);
+                if (above == null)
+                {
+                    return map;
+                }
+
+                map = above;
+            }
+
+            return map;
+        }
+
+        // 지상부터 맨 아래까지, 갱도로 이어진 지도들.
+        public static List<Map> Chain(Map map)
+        {
+            List<Map> list = new List<Map>();
+            Map root = Root(map);
+            if (root == null)
+            {
+                return list;
+            }
+
+            list.Add(root);
+            list.AddRange(MapsBelow(root));
+            return list;
+        }
+
+        public static bool SameChain(Map a, Map b)
+        {
+            return a != null && b != null && (a == b || Root(a) == Root(b));
+        }
+
+        // a에서 b로 가려면 지금 지도에서 들어가야 할 포털 (위로 가면 사다리, 아래로 가면 갱도).
+        public static MapPortal NextPortalToward(Map from, Map to)
+        {
+            if (from == null || to == null || from == to || !SameChain(from, to))
+            {
+                return null;
+            }
+
+            if (DepthOf(to) < DepthOf(from))
+            {
+                return UpExit(from);
+            }
+
+            Building_MineShaft shaft = DownShaft(from);
+            return shaft != null && shaft.PocketMapExists ? shaft : null;
+        }
+
+        // 포털을 지나 도착하는 칸 (다른 지도 쪽).
+        public static IntVec3 ArrivalCell(MapPortal portal, out Map otherMap)
+        {
+            otherMap = null;
+            if (portal == null)
+            {
+                return IntVec3.Invalid;
+            }
+
+            otherMap = portal is Building_MineShaft shaft ? shaft.PocketMap : portal.GetOtherMap();
+            if (otherMap == null)
+            {
+                return IntVec3.Invalid;
+            }
+
+            IntVec3 cell = portal.GetDestinationLocation();
+            if (!cell.IsValid || !cell.InBounds(otherMap))
+            {
+                return IntVec3.Invalid;
+            }
+
+            return cell.Standable(otherMap) ? cell : CellFinder.StandableCellNear(cell, otherMap, 5f);
+        }
+
+        // from 지도에서 출발해 target 지도에 도착하는 칸 (마지막 포털 기준).
+        public static IntVec3 ArrivalCellOn(Map from, Map target)
+        {
+            if (!SameChain(from, target) || from == target)
+            {
+                return IntVec3.Invalid;
+            }
+
+            // 위에서 내려오면 target 바로 위층의 갱도를, 아래에서 올라오면 target 바로 아래층의 사다리를 마지막으로 지난다.
+            MapPortal last;
+            if (DepthOf(from) < DepthOf(target))
+            {
+                Map above = MapAbove(target);
+                last = above != null ? DownShaft(above) : null;
+            }
+            else
+            {
+                Map below = MapBelow(target);
+                last = below != null ? UpExit(below) : null;
+            }
+
+            return ArrivalCell(last, out Map _);
         }
 
         public static bool AnyActiveColonist(Map map)

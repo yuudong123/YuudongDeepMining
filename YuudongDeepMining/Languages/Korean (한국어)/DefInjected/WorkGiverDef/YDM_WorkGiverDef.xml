@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <YDM_HaulUpShaft.label>갱도 위로 자원 올려 보내기</YDM_HaulUpShaft.label>
-  <YDM_HaulUpShaft.verb>올려 보내기</YDM_HaulUpShaft.verb>
-  <YDM_HaulUpShaft.gerund>올려 보내는 중</YDM_HaulUpShaft.gerund>
+  <YDM_HaulAcrossLayers.label>다른 층으로 운반</YDM_HaulAcrossLayers.label>
+  <YDM_HaulAcrossLayers.verb>운반</YDM_HaulAcrossLayers.verb>
+  <YDM_HaulAcrossLayers.gerund>운반하는 중</YDM_HaulAcrossLayers.gerund>
 
 </LanguageData>

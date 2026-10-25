@@ -18,6 +18,9 @@ namespace YuudongDeepMining
 
         private bool collapsing;
 
+        // 플레이어가 폐쇄했는가. 폐쇄하면 그 자리에 '폐쇄된 갱도'가 남고, 파괴되면 돌무더기만 남는다.
+        private bool sealing;
+
         public int DepthBelow => LayerUtility.DepthOf(Map) + 1;
 
         public override string EnterString => "YDM.GoDown".Translate(LayerUtility.LayerLabel(DepthBelow));
@@ -71,16 +74,26 @@ namespace YuudongDeepMining
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
         {
-            if (!collapsing && Spawned && PocketMapExists)
+            Map map = Map;
+            IntVec3 pos = Position;
+            bool spawned = Spawned;
+            if (!collapsing && spawned && PocketMapExists)
             {
-                Map map = Map;
-                IntVec3 pos = Position;
                 CollapseBelow();
                 SoundDefOf.Roof_Collapse.PlayOneShot(new TargetInfo(pos, map));
-                FilthMaker.TryMakeFilth(pos, map, ThingDefOf.Filth_RubbleRock, 6);
+                if (!sealing)
+                {
+                    FilthMaker.TryMakeFilth(pos, map, ThingDefOf.Filth_RubbleRock, 6);
+                }
             }
 
             base.Destroy(mode);
+            if (sealing && spawned && map != null && !map.Disposed)
+            {
+                Thing sealedShaft = ThingMaker.MakeThing(YDMDefOf.YDM_SealedShaft);
+                sealedShaft.SetFactionDirect(Faction.OfPlayer);
+                GenSpawn.Spawn(sealedShaft, pos, map, WipeMode.Vanish);
+            }
         }
 
         // 아래층들을 깊은 곳부터 무너뜨린다.
@@ -224,6 +237,7 @@ namespace YuudongDeepMining
 
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(text, delegate
             {
+                sealing = true;
                 Thing.allowDestroyNonDestroyable = true;
                 try
                 {

@@ -20,16 +20,17 @@
   </loadAfter>
   <description>Dig down instead of tearing up the mountains around your base.
 
-Build a mine shaft and a brand-new underground level opens up beneath it: solid rock laced with ore veins. Build a deep shaft down there to go one level deeper.
+Build a mine shaft and a brand-new underground level opens up beneath it: solid rock laced with ore veins. Build another shaft down there to go one level deeper.
 
 Features
-- Mine shaft (2x2): opens a new underground map below it. One shaft per map. Deep shafts, built underground, cost more materials and work. Maximum depth is configurable (default: 5 levels).
+- Mine shaft (2x2): opens a new underground map below it. Build it on the surface or on an underground level. One shaft per map. Maximum depth is configurable (default: 5 levels).
 - Underground levels are dark cave maps full of rock. The deeper you go, the more ore veins there are and the more valuable the ore gets.
 - Harder rock: rock and ore get tougher with every level (+50% per level, stops increasing at level 4 by default).
 - Infestations: underground levels with colonists on them get insect infestations, more often the deeper you go (with a cap).
-- Work level: assign each colonist a level and they will climb the shaft ladders on their own. If they get hungry or tired and there is no food or bed on that level, they come up, take care of it and go back down.
-- Send resources up: items with nowhere to be stored on an underground level are carried up the ladder. Choose which items in the ladder's storage tab.
-- Sealing a shaft, or losing it, collapses every level below it. Everything down there is lost, and anyone still below is buried alive.
+- Colonists work across levels: when there is nothing to do on their level, they find work on the other levels connected by the shaft (using the normal vanilla work search) and climb the ladders to do it. Haulers carry ore and other items up or down to wherever there is storage for them.
+- Home level: give each colonist a level to mainly stay on. They go out when there is work elsewhere and come back once idle. If they get hungry or tired and there is no food or bed on that level, they go up.
+- Level panel: switch between levels with the panel at the top right (or the = and - keys). Colonists you had selected stay selected from the other level, so you can right-click to give them any order there, from moving to prioritizing a workbench. They climb the ladders and carry it out when they arrive.
+- Sealing a shaft, or losing it, collapses every level below it. Everything down there is lost, and anyone still below is buried alive. A sealed shaft stays behind, filled with earth and boarded over; deconstruct it to clear the spot.
 - Raids: when none of your active colonists are on the surface but some are underground, sapper and breacher raids follow you down the shaft. Other raiders never notice the underground levels.
 - The shaft only takes damage when it is deliberately attacked: enemy AI never picks it as a target, and stray shots pass over it. The ladder out of an underground level cannot be damaged or deconstructed.
 

@@ -36,15 +36,18 @@
   <YDM.CollapsedLetterText>The mine shaft caved in. {0} and every level below it are gone.</YDM.CollapsedLetterText>
   <YDM.CollapsedLetterLost>Buried in the collapse:</YDM.CollapsedLetterLost>
   <YDM.CollapsedLetterItems>{0} items were buried with it.</YDM.CollapsedLetterItems>
-  <YDM.AutoHaulUp>Send resources up</YDM.AutoHaulUp>
-  <YDM.AutoHaulUpDesc>When on, haulers send items chosen in the storage tab up these stairs if they have nowhere to be stored on this level. They land next to the shaft above.</YDM.AutoHaulUpDesc>
   <YDM.RaidersDescending>Raiders from {0} are climbing down the mine shaft!</YDM.RaidersDescending>
-  <YDM.SurfaceOnly>Can only be built on the surface; build a deep mine shaft underground</YDM.SurfaceOnly>
-  <YDM.UndergroundOnly>Can only be built on an underground level</YDM.UndergroundOnly>
   <YDM.MaxDepthReached>Can't dig any deeper (maximum depth: level {0})</YDM.MaxDepthReached>
   <YDM.OneShaftPerMap>This map already has a mine shaft</YDM.OneShaftPerMap>
   <YDM.AssignFree>free</YDM.AssignFree>
-  <YDM.AssignLabel>Work level: {0}</YDM.AssignLabel>
-  <YDM.AssignDesc>Choose which level this colonist works on. They use the shaft stairs to get there on their own. If they get hungry or tired and there is no food or bed on that level, they come up, take care of it and go back down.\n\nFree: never changes level unless you send them.</YDM.AssignDesc>
+  <YDM.AssignLabel>Home level: {0}</YDM.AssignLabel>
+  <YDM.AssignDesc>Choose the level this colonist mainly stays on. They stay there, but when there is nothing to do on it and there is work on another level connected by the shaft, they climb the ladders to go and do it, then come back once idle. If they get hungry or tired with no food or bed on that level, they go up.\n\nFree: no home level; they stay wherever their work took them.</YDM.AssignDesc>
+  <YDM.LayerPanelTitle>Mine levels</YDM.LayerPanelTitle>
+  <YDM.LayerPanelTip>Click to view that level. Selected colonists stay remote-selected, so you can right-click on this level to give them orders; they climb the ladders and carry them out on arrival.\n\nHotkeys: level above {0}, level below {1}</YDM.LayerPanelTip>
+  <YDM.RemoteSelected>Selected on other levels: {0}</YDM.RemoteSelected>
+  <YDM.RemoteMoveHere>Come up/down the ladders and go here</YDM.RemoteMoveHere>
+  <YDM.RemoteMenuTitle>{0} (other level: carried out on arrival)</YDM.RemoteMenuTitle>
+  <YDM.RemoteMenuTitleMulti>{0} colonists (other level: carried out on arrival)</YDM.RemoteMenuTitleMulti>
+  <YDM.RemoteOrderFailed>{0} arrived but can't do this now: {1}</YDM.RemoteOrderFailed>
 
 </LanguageData>

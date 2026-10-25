@@ -2,10 +2,10 @@
 <LanguageData>
 
   <YDM_MineShaft.label>갱도</YDM_MineShaft.label>
-  <YDM_MineShaft.description>암반을 곧장 파 내려간 나무 버팀목 갱도입니다. 바위와 광맥으로 가득한 새 지하 층으로 이어지므로, 정착지 주변 산을 파헤치지 않아도 됩니다.\n\n지도마다 갱도는 하나만 지을 수 있습니다. 갱도를 폐쇄하거나 갱도가 파괴되면 그 아래층이 모두 무너집니다. 안의 물건은 모두 잃고, 아래에 있던 생물은 모두 깔려 죽습니다.</YDM_MineShaft.description>
-  <YDM_MineShaftDeep.label>깊은 갱도</YDM_MineShaftDeep.label>
-  <YDM_MineShaftDeep.description>지하 층에서 다음 층으로 파 내려간 단단한 갱도입니다. 깊은 암반을 받치느라 재료와 시간이 훨씬 많이 듭니다.\n\n층마다 갱도는 하나만 지을 수 있습니다. 갱도를 폐쇄하거나 갱도가 파괴되면 그 아래층이 모두 무너집니다. 안의 물건은 모두 잃고, 아래에 있던 생물은 모두 깔려 죽습니다.</YDM_MineShaftDeep.description>
-  <YDM_MineShaftExit.label>갱도 계단</YDM_MineShaftExit.label>
-  <YDM_MineShaftExit.description>갱도를 따라 위로 올라가는 계단입니다. 이 층에 보관할 곳이 없는 자원은 운반꾼이 이 계단으로 올려 보냅니다. 어떤 자원을 올릴지는 '저장소' 탭에서 고릅니다.</YDM_MineShaftExit.description>
+  <YDM_MineShaft.description>암반을 곧장 파 내려간 나무 버팀목 갱도입니다. 바위와 광맥으로 가득한 새 지하 층으로 이어지므로, 정착지 주변 산을 파헤치지 않아도 됩니다. 지하 층에 다시 지으면 한 층 더 내려갑니다.\n\n지도마다 갱도는 하나만 지을 수 있습니다. 갱도를 폐쇄하거나 갱도가 파괴되면 그 아래층이 모두 무너집니다. 안의 물건은 모두 잃고, 아래에 있던 생물은 모두 깔려 죽습니다.</YDM_MineShaft.description>
+  <YDM_SealedShaft.label>폐쇄된 갱도</YDM_SealedShaft.label>
+  <YDM_SealedShaft.description>흙으로 메우고 판자로 막아 버린 갱도입니다. 그 아래에 있던 것은 영영 사라졌습니다.\n\n해체하면 자리를 비울 수 있습니다.</YDM_SealedShaft.description>
+  <YDM_MineShaftExit.label>갱도 사다리</YDM_MineShaftExit.label>
+  <YDM_MineShaftExit.description>갱도를 따라 위로 올라가는 사다리입니다.</YDM_MineShaftExit.description>
 
 </LanguageData>

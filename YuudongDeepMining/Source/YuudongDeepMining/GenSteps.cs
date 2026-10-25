@@ -6,7 +6,7 @@ using Verse;
 
 namespace YuudongDeepMining
 {
-    // 지하 층의 위로 가는 계단을 지도 가운데쯤에 놓고 주변을 비운다 (바닐라 동굴 출구 단계와 같은 방식).
+    // 지하 층의 위로 가는 사다리를 지도 가운데쯤에 놓고 주변을 비운다 (바닐라 동굴 출구 단계와 같은 방식).
     public class GenStep_DeepLayerExit : GenStep
     {
         public const float ClearRadius = 4.5f;

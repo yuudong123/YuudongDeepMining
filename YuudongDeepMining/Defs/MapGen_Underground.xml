@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
-  <!-- 지하 층: 바닐라 지하 지도(땅굴·고대 창고)와 같은 생성 단계에, 깊이별 광맥과 계단 출구를 더한다. -->
+  <!-- 지하 층: 바닐라 지하 지도(땅굴·고대 창고)와 같은 생성 단계에, 깊이별 광맥과 사다리 출구를 더한다. -->
   <MapGeneratorDef>
     <defName>YDM_Underground</defName>
     <label>underground level</label>
