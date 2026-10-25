@@ -108,7 +108,8 @@
     <workType>Hauling</workType>
     <verb>haul</verb>
     <gerund>hauling</gerund>
-    <priorityInType>14</priorityInType>
+    <!-- 바닐라 일반 운반(HaulGeneral)과 같은 순서 묶음. 묶음 안에서는 나중에 본 작업의 대상이 쓰이므로, 다른 층으로 옮길 물건이 있으면 그것을 먼저 한다. -->
+    <priorityInType>15</priorityInType>
     <requiredCapacities>
       <li>Manipulation</li>
     </requiredCapacities>
