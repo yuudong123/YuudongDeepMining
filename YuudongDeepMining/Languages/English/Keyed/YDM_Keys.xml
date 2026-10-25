@@ -21,6 +21,7 @@
   <YDM.Settings.DebugLogDesc>Logs what colonists found when checking other levels for work and needs, and hauling decisions. Turn on only when tracking down a problem.</YDM.Settings.DebugLogDesc>
   <YDM.RescueToLevel>Rescue {0} to a bed on {1}</YDM.RescueToLevel>
   <YDM.CaptureToLevel>Capture {0} to a prison on {1}</YDM.CaptureToLevel>
+  <YDM.RemoteNoOptions>The colonists selected on another level have nothing they can do here</YDM.RemoteNoOptions>
   <YDM.Surface>surface</YDM.Surface>
   <YDM.LayerN>underground level {0}</YDM.LayerN>
   <YDM.GoDown>Go down to {0}</YDM.GoDown>

@@ -47,14 +47,6 @@ namespace YuudongDeepMining
                 return;
             }
 
-            foreach (Pawn pawn in Find.Selector.SelectedPawns)
-            {
-                if (pawn.CanTakeOrder && pawn.Map != target && !remote.Contains(pawn))
-                {
-                    remote.Add(pawn);
-                }
-            }
-
             if (current != null)
             {
                 cameraByMap[current] = Find.CameraDriver.MapPosition;
@@ -67,8 +59,31 @@ namespace YuudongDeepMining
                 focus = portal?.Position ?? target.Center;
             }
 
+            // 선택한 림을 원격 선택으로 넘기고 이 층 림을 다시 선택하는 일은 지도 전환 패치가 한다 (어떤 방법으로 층을 바꿔도 같게).
             CameraJumper.TryJump(focus, target, CameraJumper.MovementMode.Cut);
-            foreach (Pawn pawn in remote.Where(p => p.Spawned && p.Map == target).ToList())
+        }
+
+        // 지도가 바뀌기 직전(바닐라가 선택을 비우기 전): 같은 갱도 줄의 다른 층에 있는 선택 림을 원격 선택으로 남긴다.
+        public static void CaptureSelection(Map target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            foreach (Pawn pawn in Find.Selector.SelectedPawns)
+            {
+                if (pawn.CanTakeOrder && pawn.Spawned && pawn.Map != target && LayerUtility.SameChain(pawn.Map, target) && !remote.Contains(pawn))
+                {
+                    remote.Add(pawn);
+                }
+            }
+        }
+
+        // 지도가 바뀐 직후: 이 층에 있는 원격 선택 림은 다시 일반 선택으로.
+        public static void RestoreSelection(Map current)
+        {
+            foreach (Pawn pawn in remote.Where(p => p.Spawned && p.Map == current).ToList())
             {
                 remote.Remove(pawn);
                 Find.Selector.Select(pawn, false, false);
@@ -197,10 +212,12 @@ namespace YuudongDeepMining
             List<FloatMenuOption> vanilla = GhostUtility.Run(pawns, map, p => LayerUtility.ArrivalCellOn(p.Map, map),
                 () => FloatMenuMakerMap.GetOptions(pawns.ToList(), clickPos, out FloatMenuContext _), new List<FloatMenuOption>());
 
+            LayerDebug.Log(pawns[0], "remote menu at " + cell + ": " + vanilla.Count + " vanilla options");
             List<FloatMenuOption> options = new List<FloatMenuOption>();
-            if (cell.Standable(map))
+            IntVec3 moveCell = cell.Standable(map) ? cell : CellFinder.StandableCellNear(cell, map, 3f);
+            if (moveCell.IsValid)
             {
-                options.Add(new FloatMenuOption("YDM.RemoteMoveHere".Translate(), () => Issue(pawns, map, cell, null, true)));
+                options.Add(new FloatMenuOption("YDM.RemoteMoveHere".Translate(), () => Issue(pawns, map, moveCell, null, true)));
             }
 
             HashSet<string> seen = new HashSet<string>();
@@ -217,6 +234,7 @@ namespace YuudongDeepMining
 
             if (options.Count == 0)
             {
+                Messages.Message("YDM.RemoteNoOptions".Translate(), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
@@ -310,6 +328,28 @@ namespace YuudongDeepMining
             RemoteControl.OpenMenu(UI.MouseMapPosition());
             Event.current.Use();
             return false;
+        }
+    }
+
+    // 어떤 방법으로 층을 바꾸든(층 패널, 콜로니스트 바, 사다리의 '지상 보기' 등) 선택한 림이 원격 선택으로 남게 한다.
+    // 바닐라 지도 전환 처리는 그대로 두고, 앞에서 선택을 기록하고 뒤에서 이 층 림을 다시 선택한다.
+    [HarmonyPatch(typeof(MapInterface), nameof(MapInterface.Notify_SwitchedMap))]
+    internal static class MapInterface_SwitchedMap_Remote_Patch
+    {
+        private static void Prefix()
+        {
+            if (Current.ProgramState == ProgramState.Playing)
+            {
+                RemoteControl.CaptureSelection(Find.CurrentMap);
+            }
+        }
+
+        private static void Postfix()
+        {
+            if (Current.ProgramState == ProgramState.Playing && Find.CurrentMap != null)
+            {
+                RemoteControl.RestoreSelection(Find.CurrentMap);
+            }
         }
     }
 }

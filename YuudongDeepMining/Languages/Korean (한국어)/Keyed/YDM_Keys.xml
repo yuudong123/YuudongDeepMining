@@ -21,6 +21,7 @@
   <YDM.Settings.DebugLogDesc>켜면 정착민이 다른 층의 일·욕구를 판단한 결과와 운반 판단 결과를 로그에 남깁니다. 문제를 찾을 때만 켜세요.</YDM.Settings.DebugLogDesc>
   <YDM.RescueToLevel>{0}을(를) {1} 침대로 구조</YDM.RescueToLevel>
   <YDM.CaptureToLevel>{0}을(를) {1} 감옥으로 포획</YDM.CaptureToLevel>
+  <YDM.RemoteNoOptions>다른 층에서 선택한 림이 여기서 할 수 있는 명령이 없습니다</YDM.RemoteNoOptions>
   <YDM.Surface>지상</YDM.Surface>
   <YDM.LayerN>지하 {0}층</YDM.LayerN>
   <YDM.GoDown>{0}(으)로 내려가기</YDM.GoDown>

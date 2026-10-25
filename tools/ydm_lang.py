@@ -28,6 +28,8 @@ K = {
     "YDM.RescueToLevel": ("{0}을(를) {1} 침대로 구조", "Rescue {0} to a bed on {1}"),
     "YDM.CaptureToLevel": ("{0}을(를) {1} 감옥으로 포획", "Capture {0} to a prison on {1}"),
 
+    "YDM.RemoteNoOptions": ("다른 층에서 선택한 림이 여기서 할 수 있는 명령이 없습니다", "The colonists selected on another level have nothing they can do here"),
+
     "YDM.Surface": ("지상", "surface"),
     "YDM.LayerN": ("지하 {0}층", "underground level {0}"),
     "YDM.GoDown": ("{0}(으)로 내려가기", "Go down to {0}"),
