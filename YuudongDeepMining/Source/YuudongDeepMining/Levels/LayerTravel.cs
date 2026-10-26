@@ -169,6 +169,11 @@ namespace YuudongDeepMining
             return wasted.TryGetValue(pawn, out Dictionary<Map, int> byMap) && byMap.TryGetValue(map, out int until) && Find.TickManager.TicksGame < until;
         }
 
+        public override void LoadedGame()
+        {
+            WorkbenchCompat.ClearAll();
+        }
+
         public override void GameComponentTick()
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Travel);
