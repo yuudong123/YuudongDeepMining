@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -264,66 +265,61 @@ namespace YuudongDeepMining
         }
     }
 
-    // 건설 메뉴: 재질을 고를 때 바닐라는 '이 지도에 그 재질이 하나라도 있는지'만 본다.
-    // 메뉴를 만드는 동안에만, 이 지도에 없으면 같은 갱도 줄의 다른 층에 있는지도 보게 한다 (원본은 그대로).
+    // 건설 메뉴: 재질을 고를 때 바닐라는 '이 지도에 그 재질이 하나라도 있는지'(listerThings.ThingsOfDef(재질).Count > 0)만 본다.
+    // 건설 메뉴 함수 안의 그 호출 하나만 '이 지도에 없으면 같은 갱도 줄의 다른 층도 본다'로 바꾼다 (원본의 나머지는 그대로).
+    // 자주 불리는 ListerThings 쪽에 패치를 걸지 않으므로 다른 곳 성능에는 영향이 없다.
     [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.ProcessInput))]
     internal static class Designator_Build_ProcessInput_Stuff_Patch
     {
-        public static bool Active;
+        private static readonly MethodInfo ThingsOfDef = AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsOfDef));
 
-        private static void Prefix()
+        private static readonly MethodInfo AcrossLevels = AccessTools.Method(typeof(Designator_Build_ProcessInput_Stuff_Patch), nameof(ThingsOfDefAcrossLevels));
+
+        public static int Replaced;
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            Active = true;
-        }
-
-        private static void Finalizer()
-        {
-            Active = false;
-        }
-    }
-
-    // ThingsOfDef는 짧아서 호출부에 인라인될 수 있으므로, 실제로 목록을 꺼내는 ThingsMatching에 건다.
-    [HarmonyPatch(typeof(ListerThings), nameof(ListerThings.ThingsMatching))]
-    internal static class ListerThings_ThingsMatching_Stuff_Patch
-    {
-        private static bool busy;
-
-        private static void Postfix(ThingRequest req, ref List<Thing> __result)
-        {
-            if (!Designator_Build_ProcessInput_Stuff_Patch.Active || busy || req.singleDef == null || __result.Count > 0 || GhostUtility.Active)
+            foreach (CodeInstruction ci in instructions)
             {
-                return;
+                if ((ci.opcode == OpCodes.Callvirt || ci.opcode == OpCodes.Call) && ci.operand is MethodInfo m && m == ThingsOfDef)
+                {
+                    Replaced++;
+                    yield return new CodeInstruction(OpCodes.Call, AcrossLevels).MoveLabelsFrom(ci).MoveBlocksFrom(ci);
+                    continue;
+                }
+
+                yield return ci;
+            }
+        }
+
+        public static List<Thing> ThingsOfDefAcrossLevels(ListerThings lister, ThingDef def)
+        {
+            List<Thing> here = lister.ThingsOfDef(def);
+            if (here.Count > 0 || GhostUtility.Active)
+            {
+                return here;
             }
 
             Map current = Find.CurrentMap;
             List<Map> chain = CountAggregate.ChainOf(current);
             if (chain == null)
             {
-                return;
+                return here;
             }
 
-            busy = true;
-            try
+            foreach (Map other in chain)
             {
-                foreach (Map other in chain)
+                if (other != current)
                 {
-                    if (other == current)
-                    {
-                        continue;
-                    }
-
-                    List<Thing> theirs = other.listerThings.ThingsMatching(req);
+                    List<Thing> theirs = other.listerThings.ThingsOfDef(def);
                     if (theirs.Count > 0)
                     {
-                        __result = theirs;
-                        return;
+                        return theirs;
                     }
                 }
             }
-            finally
-            {
-                busy = false;
-            }
+
+            return here;
         }
     }
 }

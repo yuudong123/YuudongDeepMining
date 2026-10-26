@@ -121,6 +121,7 @@ namespace YuudongDeepMining
                 }
 
                 windowStart = now;
+                BuildRows();
             }
 
             double logSeconds = (now - logStart) / (double)Stopwatch.Frequency;
@@ -146,7 +147,20 @@ namespace YuudongDeepMining
 
         public static double TotalMs => LastMs.Sum();
 
-        // 층 패널 위에 그리는 측정 결과 (최근 1초, 자기 시간 큰 순).
+        private static string drawTitle = "";
+        private static readonly List<KeyValuePair<string, string>> drawRows = new List<KeyValuePair<string, string>>();
+
+        private static void BuildRows()
+        {
+            drawTitle = "YDM.Perf.Title".Translate(TotalMs.ToString("0.00"));
+            drawRows.Clear();
+            foreach (int i in Enumerable.Range(0, Count).Where(i => LastCalls[i] > 0 || LastMs[i] > 0.0005).OrderByDescending(i => LastMs[i]).Take(10))
+            {
+                drawRows.Add(new KeyValuePair<string, string>(("YDM.Perf.Cat." + (Cat)i).Translate(), LastMs[i].ToString("0.00") + "ms  " + LastCalls[i] + "/s"));
+            }
+        }
+
+        // 층 패널 위에 그리는 측정 결과 (최근 1초, 자기 시간 큰 순). 글자는 BuildRows에서 1초에 한 번 만든다.
         public static void Draw(Rect panel)
         {
             if (!On)
@@ -154,28 +168,27 @@ namespace YuudongDeepMining
                 return;
             }
 
-            List<int> rows = Enumerable.Range(0, Count).Where(i => LastCalls[i] > 0 || LastMs[i] > 0.0005).OrderByDescending(i => LastMs[i]).Take(10).ToList();
             float lineH = 18f;
-            float height = 26f + Mathf.Max(1, rows.Count) * lineH;
+            float height = 26f + Mathf.Max(1, drawRows.Count) * lineH;
             float width = 230f;
             Rect outer = new Rect(panel.xMax - width, panel.y - height - 6f, width, height);
             Widgets.DrawWindowBackground(outer);
             Rect inner = outer.ContractedBy(5f);
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(new Rect(inner.x, inner.y, inner.width, lineH), "YDM.Perf.Title".Translate(TotalMs.ToString("0.00")));
+            Widgets.Label(new Rect(inner.x, inner.y, inner.width, lineH), drawTitle);
             float y = inner.y + lineH + 2f;
-            if (rows.Count == 0)
+            if (drawRows.Count == 0)
             {
                 Widgets.Label(new Rect(inner.x, y, inner.width, lineH), "-");
             }
 
-            foreach (int i in rows)
+            foreach (KeyValuePair<string, string> row in drawRows)
             {
-                Rect row = new Rect(inner.x, y, inner.width, lineH);
-                Widgets.Label(row, ("YDM.Perf.Cat." + (Cat)i).Translate());
+                Rect r = new Rect(inner.x, y, inner.width, lineH);
+                Widgets.Label(r, row.Key);
                 Text.Anchor = TextAnchor.MiddleRight;
-                Widgets.Label(row, LastMs[i].ToString("0.00") + "ms  " + LastCalls[i] + "/s");
+                Widgets.Label(r, row.Value);
                 Text.Anchor = TextAnchor.MiddleLeft;
                 y += lineH;
             }

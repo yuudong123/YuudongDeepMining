@@ -37,9 +37,76 @@ namespace YuudongDeepMining
 
         public static DeepMiningSettings Settings => DeepMiningMod.Settings;
 
+        // 지도마다 갱도·사다리·층 컴포넌트·갱도 줄을 기억해 둔다. 갱도나 사다리가 생기거나 없어질 때,
+        // 지하 층이 생기거나 무너질 때, 지도 수가 바뀔 때만 다시 계산한다 (매 프레임 건물 목록을 뒤지지 않게).
+        private class MapInfo
+        {
+            public int version;
+            public MapComponent_DeepLayer comp;
+            public Building_MineShaft shaft;
+            public Building_MineShaftExit exit;
+            public List<Map> chain;
+        }
+
+        private static readonly Dictionary<Map, MapInfo> infos = new Dictionary<Map, MapInfo>();
+        private static Game cacheGame;
+        private static int version;
+        private static int mapCount = -1;
+
+        public static void Invalidate()
+        {
+            version++;
+        }
+
+        private static MapInfo Info(Map map)
+        {
+            if (Current.Game != cacheGame)
+            {
+                infos.Clear();
+                cacheGame = Current.Game;
+                version++;
+            }
+
+            int count = Find.Maps.Count;
+            if (count != mapCount)
+            {
+                mapCount = count;
+                version++;
+            }
+
+            if (infos.TryGetValue(map, out MapInfo info) && info.version == version)
+            {
+                return info;
+            }
+
+            if (infos.Count > 64)
+            {
+                infos.Clear();
+            }
+
+            info = new MapInfo { version = version, comp = map.GetComponent<MapComponent_DeepLayer>() };
+            foreach (Thing thing in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaft))
+            {
+                info.shaft = (Building_MineShaft)thing;
+                break;
+            }
+
+            if (info.comp != null)
+            {
+                foreach (Thing thing in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaftExit))
+                {
+                    info.exit = (Building_MineShaftExit)thing;
+                    break;
+                }
+            }
+
+            infos[map] = info;
+            return info;
+        }
+
         public static MapComponent_DeepLayer LayerComp(Map map)
         {
-            return map?.GetComponent<MapComponent_DeepLayer>();
+            return map == null || map.Disposed ? null : Info(map).comp;
         }
 
         public static bool IsLayer(Map map)
@@ -60,43 +127,37 @@ namespace YuudongDeepMining
         // 이 지도에서 아래층으로 내려가는 갱도 (지도마다 하나).
         public static Building_MineShaft DownShaft(Map map)
         {
-            if (map == null)
+            if (map == null || map.Disposed)
             {
                 return null;
             }
 
-            foreach (Thing thing in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaft))
-            {
-                return (Building_MineShaft)thing;
-            }
-
-            return null;
+            Building_MineShaft shaft = Info(map).shaft;
+            return shaft != null && shaft.Spawned ? shaft : null;
         }
 
         // 지하 층의 위로 가는 출구.
         public static Building_MineShaftExit UpExit(Map map)
         {
-            if (map == null || !IsLayer(map))
+            if (map == null || map.Disposed)
             {
                 return null;
             }
 
-            foreach (Thing thing in map.listerThings.ThingsOfDef(YDMDefOf.YDM_MineShaftExit))
-            {
-                return (Building_MineShaftExit)thing;
-            }
-
-            return null;
+            Building_MineShaftExit exit = Info(map).exit;
+            return exit != null && exit.Spawned ? exit : null;
         }
 
         public static Map MapBelow(Map map)
         {
-            return DownShaft(map)?.PocketMap;
+            Map below = DownShaft(map)?.PocketMap;
+            return below != null && !below.Disposed ? below : null;
         }
 
         public static Map MapAbove(Map map)
         {
-            return UpExit(map)?.entrance?.Map;
+            Map above = UpExit(map)?.entrance?.Map;
+            return above != null && !above.Disposed ? above : null;
         }
 
         // 이 지도 아래(바로 아래부터 맨 아래까지) 지하 층들.
@@ -125,34 +186,48 @@ namespace YuudongDeepMining
         // 갱도로 이어진 줄의 맨 위 지도 (지상).
         public static Map Root(Map map)
         {
-            int guard = 0;
-            while (map != null && guard++ < 64)
-            {
-                Map above = MapAbove(map);
-                if (above == null)
-                {
-                    return map;
-                }
-
-                map = above;
-            }
-
-            return map;
+            List<Map> chain = Chain(map);
+            return chain.Count > 0 ? chain[0] : null;
         }
 
-        // 지상부터 맨 아래까지, 갱도로 이어진 지도들.
+        private static readonly List<Map> EmptyChain = new List<Map>();
+
+        // 지상부터 맨 아래까지, 갱도로 이어진 지도들. 기억해 둔 목록을 돌려주므로 고치면 안 된다.
         public static List<Map> Chain(Map map)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Chain);
-            List<Map> list = new List<Map>();
-            Map root = Root(map);
-            if (root == null)
+            if (map == null || map.Disposed)
             {
-                return list;
+                return EmptyChain;
             }
 
-            list.Add(root);
+            MapInfo info = Info(map);
+            if (info.chain != null)
+            {
+                return info.chain;
+            }
+
+            Map root = map;
+            int guard = 0;
+            while (guard++ < 64)
+            {
+                Map above = MapAbove(root);
+                if (above == null)
+                {
+                    break;
+                }
+
+                root = above;
+            }
+
+            List<Map> list = new List<Map> { root };
             list.AddRange(MapsBelow(root));
+            foreach (Map member in list)
+            {
+                Info(member).chain = list;
+            }
+
+            info.chain = list;
             return list;
         }
 

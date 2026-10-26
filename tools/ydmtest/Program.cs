@@ -65,6 +65,11 @@ public static class Program
         var patched = harmony.GetPatchedMethods().ToList();
         foreach (var m in patched) Console.WriteLine("patched: " + m.DeclaringType.Name + "." + m.Name);
         Console.WriteLine("patch classes: " + patchTypes.Count + ", patched methods: " + patched.Count);
+        // transpiler check: 건설 메뉴의 재질 확인 호출을 실제로 바꿨는지
+        Type stuffPatch = Mod.GetType("YuudongDeepMining.Designator_Build_ProcessInput_Stuff_Patch");
+        int replaced = (int)stuffPatch.GetField("Replaced").GetValue(null);
+        Console.WriteLine("build menu ThingsOfDef replaced: " + replaced);
+        if (replaced < 1) Fail("build menu transpiler matched nothing");
 
         // principle checks: 원본 실행을 막는 Prefix(bool 반환)는 허용 목록만
         var allowedSkipPrefix = new HashSet<string> { "Projectile_CanHit_Patch" };

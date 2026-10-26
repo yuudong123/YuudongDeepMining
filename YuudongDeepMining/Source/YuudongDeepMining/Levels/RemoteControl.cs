@@ -99,6 +99,13 @@ namespace YuudongDeepMining
 
         public static void OnGUI()
         {
+            // OnGUI는 이벤트마다(레이아웃·마우스 이동 등 포함) 불린다. 그리기·클릭·키 입력 때만 일한다.
+            EventType type = Event.current.type;
+            if (type != EventType.Repaint && type != EventType.MouseDown && type != EventType.MouseUp && type != EventType.KeyDown)
+            {
+                return;
+            }
+
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.LevelPanel);
             Map map = Find.CurrentMap;
             if (map == null || WorldRendererUtility.WorldSelected || Find.UIRoot.screenshotMode.FiltersCurrentEvent)
@@ -113,7 +120,12 @@ namespace YuudongDeepMining
                 return;
             }
 
-            Cleanup(map);
+            if (type == EventType.Repaint)
+            {
+                Cleanup(map);
+                YDMProfiler.Update();
+            }
+
             int index = chain.IndexOf(map);
             if (YDMDefOf.YDM_LayerUp != null && YDMDefOf.YDM_LayerUp.KeyDownEvent && index > 0)
             {
@@ -135,7 +147,6 @@ namespace YuudongDeepMining
                 Event.current.Use();
             }
 
-            YDMProfiler.Update();
             Event e = Event.current;
             if (e.type == EventType.MouseDown)
             {
@@ -154,8 +165,37 @@ namespace YuudongDeepMining
             }
         }
 
+        // 층 버튼 글자·도움말은 1초에 한 번(또는 갱도 줄이 바뀔 때)만 만든다.
+        private static List<Map> labelChain;
+        private static string[] labels = new string[0];
+        private static string title;
+        private static string tip;
+        private static long labelsMs;
+
+        private static void RefreshLabels(List<Map> chain)
+        {
+            long now = System.Environment.TickCount64;
+            if (chain == labelChain && labels.Length == chain.Count && now - labelsMs < 1000)
+            {
+                return;
+            }
+
+            labelChain = chain;
+            labelsMs = now;
+            labels = new string[chain.Count];
+            for (int i = 0; i < chain.Count; i++)
+            {
+                int colonists = chain[i].mapPawns.FreeColonistsSpawnedCount;
+                labels[i] = LayerUtility.LayerLabel(LayerUtility.DepthOf(chain[i])) + (colonists > 0 ? "  (" + colonists + ")" : "");
+            }
+
+            title = "YDM.LayerPanelTitle".Translate();
+            tip = "YDM.LayerPanelTip".Translate(YDMDefOf.YDM_LayerUp?.MainKeyLabel ?? "", YDMDefOf.YDM_LayerDown?.MainKeyLabel ?? "");
+        }
+
         private static void DrawPanel(Map map, List<Map> chain)
         {
+            RefreshLabels(chain);
             float height = 28f + chain.Count * RowHeight + (remote.Count > 0 ? 58f : 0f);
             // 오른쪽 아래, 날짜·속도 컨트롤(GlobalControls) 왼쪽. 오른쪽 위는 알림 칸과 겹친다.
             Rect outer = new Rect(UI.screenWidth - GlobalControls.Width - PanelWidth - 12f, UI.screenHeight - 35f - height - 8f, PanelWidth, height);
@@ -165,13 +205,13 @@ namespace YuudongDeepMining
             Rect inner = outer.ContractedBy(5f);
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(new Rect(inner.x, inner.y, inner.width, 18f), "YDM.LayerPanelTitle".Translate());
+            Widgets.Label(new Rect(inner.x, inner.y, inner.width, 18f), title);
             float y = inner.y + 20f;
-            foreach (Map layer in chain)
+            for (int i = 0; i < chain.Count; i++)
             {
+                Map layer = chain[i];
                 Rect row = new Rect(inner.x, y, inner.width, RowHeight - 2f);
-                int colonists = layer.mapPawns.FreeColonistsSpawnedCount;
-                string label = LayerUtility.LayerLabel(LayerUtility.DepthOf(layer)) + (colonists > 0 ? "  (" + colonists + ")" : "");
+                string label = labels[i];
                 if (layer == map)
                 {
                     Widgets.DrawBoxSolid(row, new Color(1f, 1f, 1f, 0.12f));
@@ -182,7 +222,7 @@ namespace YuudongDeepMining
                     SwitchTo(layer);
                 }
 
-                TooltipHandler.TipRegion(row, "YDM.LayerPanelTip".Translate(YDMDefOf.YDM_LayerUp?.MainKeyLabel ?? "", YDMDefOf.YDM_LayerDown?.MainKeyLabel ?? ""));
+                TooltipHandler.TipRegion(row, tip);
                 y += RowHeight;
             }
 
@@ -205,7 +245,8 @@ namespace YuudongDeepMining
                     Rect icon = new Rect(x, y + 22f, 26f, 26f);
                     Widgets.DrawBoxSolid(icon, new Color(0f, 0f, 0f, 0.25f));
                     Widgets.ThingIcon(icon, pawn);
-                    TooltipHandler.TipRegion(icon, pawn.LabelCap + " (" + LayerUtility.LayerLabel(LayerUtility.DepthOf(pawn.Map)) + ")");
+                    Pawn tipPawn = pawn;
+                    TooltipHandler.TipRegion(icon, () => tipPawn.LabelCap + " (" + LayerUtility.LayerLabel(LayerUtility.DepthOf(tipPawn.Map)) + ")", tipPawn.thingIDNumber ^ 0x59444D);
                     if (Widgets.ButtonInvisible(icon))
                     {
                         remote.Remove(pawn);

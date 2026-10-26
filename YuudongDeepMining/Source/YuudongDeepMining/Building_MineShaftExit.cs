@@ -18,6 +18,19 @@ namespace YuudongDeepMining
 
         public override string EnteringString => "YDM.GoingUp".Translate(LayerUtility.LayerLabel(Depth - 1));
 
+        // 사다리가 생기거나 없어지면 갱도 줄 기억을 버린다.
+        public override void SpawnSetup(Map map, bool respawningAfterLoad)
+        {
+            base.SpawnSetup(map, respawningAfterLoad);
+            LayerUtility.Invalidate();
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.DeSpawn(mode);
+            LayerUtility.Invalidate();
+        }
+
         public override IEnumerable<Gizmo> GetGizmos()
         {
             foreach (Gizmo gizmo in base.GetGizmos())

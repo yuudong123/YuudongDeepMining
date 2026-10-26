@@ -35,18 +35,32 @@ namespace YuudongDeepMining
             try
             {
                 Map map = PocketMapUtility.GeneratePocketMap(new IntVec3(size, 1, size), YDMDefOf.YDM_Underground, GetExtraGenSteps(), Map);
-                MapComponent_DeepLayer comp = LayerUtility.LayerComp(map);
+                MapComponent_DeepLayer comp = map.GetComponent<MapComponent_DeepLayer>();
                 if (comp != null)
                 {
                     comp.depth = depth;
                 }
 
+                LayerUtility.Invalidate();
                 return map;
             }
             finally
             {
                 LayerUtility.generatingDepth = 0;
             }
+        }
+
+        // 갱도가 생기거나 없어지면 갱도 줄 기억을 버린다.
+        public override void SpawnSetup(Map map, bool respawningAfterLoad)
+        {
+            base.SpawnSetup(map, respawningAfterLoad);
+            LayerUtility.Invalidate();
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.DeSpawn(mode);
+            LayerUtility.Invalidate();
         }
 
         public override void PreApplyDamage(ref DamageInfo dinfo, out bool absorbed)
@@ -180,6 +194,7 @@ namespace YuudongDeepMining
             }
 
             PocketMapUtility.DestroyPocketMap(map);
+            LayerUtility.Invalidate();
         }
 
         public override IEnumerable<Gizmo> GetGizmos()

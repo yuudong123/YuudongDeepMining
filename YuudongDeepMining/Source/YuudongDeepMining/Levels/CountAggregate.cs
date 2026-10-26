@@ -30,6 +30,21 @@ namespace YuudongDeepMining
             return chain.Count < 2 ? null : chain;
         }
 
+        // 합산 결과를 잠깐 기억할지: 게임 시간 30틱 또는 실제 0.25초가 지나면 다시 센다 (일시정지 중에도 갱신되게).
+        public static bool Stale(ref int stampTicks, ref long stampMs)
+        {
+            int ticks = Find.TickManager.TicksGame;
+            long ms = Environment.TickCount64;
+            if (stampMs != 0 && ticks >= stampTicks && ticks - stampTicks < 30 && ms - stampMs < 250)
+            {
+                return false;
+            }
+
+            stampTicks = ticks;
+            stampMs = ms;
+            return true;
+        }
+
         public static T Raw<T>(Func<T> func)
         {
             bool old = computing;
@@ -45,123 +60,168 @@ namespace YuudongDeepMining
         }
     }
 
-    // 자원 수: 사전을 직접 읽는 함수만 묶음 합산한다 (GetCountIn(카테고리)는 GetCount를 다시 부르므로 자동으로 따라온다).
-    [HarmonyPatch]
-    internal static class ResourceCounter_Aggregate_Patch
+    // 자원 수: 갱도 줄마다 각 층의 원래 자원 사전을 한 번 합쳐 기억해 두고(잠깐), 개별 질문은 거기서 바로 꺼낸다.
+    // (GetCountIn(카테고리)는 GetCount를 다시 부르므로 자동으로 따라온다.)
+    public static class ResourceAggregate
     {
-        private static readonly AccessTools.FieldRef<ResourceCounter, Map> MapRef = AccessTools.FieldRefAccess<ResourceCounter, Map>("map");
-
-        private static IEnumerable<MethodBase> TargetMethods()
+        private class Entry
         {
-            yield return AccessTools.Method(typeof(ResourceCounter), nameof(ResourceCounter.GetCount), new[] { typeof(ThingDef) });
-            yield return AccessTools.Method(typeof(ResourceCounter), nameof(ResourceCounter.GetCountIn), new[] { typeof(ThingRequestGroup) });
+            public int stampTicks;
+            public long stampMs;
+            public readonly Dictionary<ThingDef, int> merged = new Dictionary<ThingDef, int>();
+            public float humanNutrition;
+            public float babyNutrition;
         }
 
-        private static void Postfix(ResourceCounter __instance, MethodBase __originalMethod, object[] __args, ref int __result)
+        private static readonly Dictionary<Map, Entry> entries = new Dictionary<Map, Entry>();
+
+        public static readonly AccessTools.FieldRef<ResourceCounter, Map> MapRef = AccessTools.FieldRefAccess<ResourceCounter, Map>("map");
+
+        // 묶음에 속한 지도면 합친 자원 사전을, 아니면 null.
+        public static Dictionary<ThingDef, int> Merged(ResourceCounter counter, out float human, out float baby)
         {
-            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
+            human = 0f;
+            baby = 0f;
             if (CountAggregate.Computing)
             {
-                return;
+                return null;
             }
 
-            List<Map> chain = CountAggregate.ChainOf(MapRef(__instance));
+            List<Map> chain = CountAggregate.ChainOf(MapRef(counter));
             if (chain == null)
             {
-                return;
+                return null;
             }
 
-            Map mine = MapRef(__instance);
-            int total = __result;
-            foreach (Map other in chain)
+            Map root = chain[0];
+            if (!entries.TryGetValue(root, out Entry e))
             {
-                if (other != mine)
+                if (entries.Count > 16)
                 {
-                    total += CountAggregate.Raw(() => (int)__originalMethod.Invoke(other.resourceCounter, __args));
+                    entries.Clear();
+                }
+
+                entries[root] = e = new Entry();
+            }
+
+            if (CountAggregate.Stale(ref e.stampTicks, ref e.stampMs))
+            {
+                e.merged.Clear();
+                foreach (Map m in chain)
+                {
+                    Dictionary<ThingDef, int> theirs = CountAggregate.Raw(() => m.resourceCounter.AllCountedAmounts);
+                    foreach (KeyValuePair<ThingDef, int> kv in theirs)
+                    {
+                        e.merged.TryGetValue(kv.Key, out int have);
+                        e.merged[kv.Key] = have + kv.Value;
+                    }
+                }
+
+                // 바닐라 영양 합계와 같은 식.
+                e.humanNutrition = 0f;
+                e.babyNutrition = 0f;
+                foreach (KeyValuePair<ThingDef, int> kv in e.merged)
+                {
+                    if (kv.Key.IsNutritionGivingIngestible && kv.Key.ingestible.HumanEdible)
+                    {
+                        e.humanNutrition += kv.Key.GetStatValueAbstract(StatDefOf.Nutrition) * kv.Value;
+                    }
+
+                    if (kv.Key.IsNutritionGivingIngestibleForHumanlikeBabies)
+                    {
+                        e.babyNutrition += kv.Key.GetStatValueAbstract(StatDefOf.Nutrition) * kv.Value;
+                    }
                 }
             }
 
-            __result = total;
+            human = e.humanNutrition;
+            baby = e.babyNutrition;
+            return e.merged;
         }
     }
 
-    [HarmonyPatch]
-    internal static class ResourceCounter_AggregateFloat_Patch
+    [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.GetCount), new[] { typeof(ThingDef) })]
+    internal static class ResourceCounter_GetCount_Aggregate_Patch
     {
-        private static readonly AccessTools.FieldRef<ResourceCounter, Map> MapRef = AccessTools.FieldRefAccess<ResourceCounter, Map>("map");
-
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            yield return AccessTools.PropertyGetter(typeof(ResourceCounter), nameof(ResourceCounter.TotalHumanEdibleNutrition));
-            yield return AccessTools.PropertyGetter(typeof(ResourceCounter), nameof(ResourceCounter.TotalHumanBabyEdibleNutrition));
-        }
-
-        private static void Postfix(ResourceCounter __instance, MethodBase __originalMethod, ref float __result)
+        private static void Postfix(ResourceCounter __instance, ThingDef rDef, ref int __result)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
-            if (CountAggregate.Computing)
+            if (rDef == null || rDef.resourceReadoutPriority == ResourceCountPriority.Uncounted)
             {
                 return;
             }
 
-            Map mine = MapRef(__instance);
-            List<Map> chain = CountAggregate.ChainOf(mine);
-            if (chain == null)
+            Dictionary<ThingDef, int> merged = ResourceAggregate.Merged(__instance, out float _, out float _);
+            if (merged != null)
+            {
+                __result = merged.TryGetValue(rDef, out int n) ? n : 0;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.GetCountIn), new[] { typeof(ThingRequestGroup) })]
+    internal static class ResourceCounter_GetCountIn_Aggregate_Patch
+    {
+        private static void Postfix(ResourceCounter __instance, ThingRequestGroup group, ref int __result)
+        {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
+            Dictionary<ThingDef, int> merged = ResourceAggregate.Merged(__instance, out float _, out float _);
+            if (merged == null)
             {
                 return;
             }
 
-            float total = __result;
-            foreach (Map other in chain)
+            int n = 0;
+            foreach (KeyValuePair<ThingDef, int> kv in merged)
             {
-                if (other != mine)
+                if (group.Includes(kv.Key))
                 {
-                    total += CountAggregate.Raw(() => (float)__originalMethod.Invoke(other.resourceCounter, null));
+                    n += kv.Value;
                 }
             }
 
-            __result = total;
+            __result = n;
         }
     }
 
-    // 왼쪽 위 자원 표시 등이 쓰는 전체 목록: 묶음 전체를 더한 새 사전을 돌려준다 (원래 사전은 건드리지 않는다).
+    [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.TotalHumanEdibleNutrition), MethodType.Getter)]
+    internal static class ResourceCounter_HumanNutrition_Aggregate_Patch
+    {
+        private static void Postfix(ResourceCounter __instance, ref float __result)
+        {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
+            if (ResourceAggregate.Merged(__instance, out float human, out float _) != null)
+            {
+                __result = human;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.TotalHumanBabyEdibleNutrition), MethodType.Getter)]
+    internal static class ResourceCounter_BabyNutrition_Aggregate_Patch
+    {
+        private static void Postfix(ResourceCounter __instance, ref float __result)
+        {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
+            if (ResourceAggregate.Merged(__instance, out float _, out float baby) != null)
+            {
+                __result = baby;
+            }
+        }
+    }
+
+    // 왼쪽 위 자원 표시 등이 쓰는 전체 목록: 묶음 전체를 합친 사전 (읽기 전용으로 쓴다).
     [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.AllCountedAmounts), MethodType.Getter)]
     internal static class ResourceCounter_AllCounted_Aggregate_Patch
     {
-        private static readonly AccessTools.FieldRef<ResourceCounter, Map> MapRef = AccessTools.FieldRefAccess<ResourceCounter, Map>("map");
-
         private static void Postfix(ResourceCounter __instance, ref Dictionary<ThingDef, int> __result)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
-            if (CountAggregate.Computing)
+            Dictionary<ThingDef, int> merged = ResourceAggregate.Merged(__instance, out float _, out float _);
+            if (merged != null)
             {
-                return;
+                __result = merged;
             }
-
-            Map mine = MapRef(__instance);
-            List<Map> chain = CountAggregate.ChainOf(mine);
-            if (chain == null)
-            {
-                return;
-            }
-
-            Dictionary<ThingDef, int> merged = new Dictionary<ThingDef, int>(__result);
-            foreach (Map other in chain)
-            {
-                if (other == mine)
-                {
-                    continue;
-                }
-
-                Dictionary<ThingDef, int> theirs = CountAggregate.Raw(() => other.resourceCounter.AllCountedAmounts);
-                foreach (KeyValuePair<ThingDef, int> kv in theirs)
-                {
-                    merged.TryGetValue(kv.Key, out int have);
-                    merged[kv.Key] = have + kv.Value;
-                }
-            }
-
-            __result = merged;
         }
     }
 
@@ -233,6 +293,28 @@ namespace YuudongDeepMining
             }
         }
 
+        private class Entry
+        {
+            public int stampTicks;
+            public long stampMs;
+            public readonly float[] sums = new float[5];
+        }
+
+        private static readonly Dictionary<Map, Entry> entries = new Dictionary<Map, Entry>();
+
+        private static int IndexOf(MethodBase method)
+        {
+            switch (method.Name)
+            {
+                case "get_WealthTotal": return 0;
+                case "get_WealthItems": return 1;
+                case "get_WealthBuildings": return 2;
+                case "get_WealthFloorsOnly": return 3;
+                default: return 4;
+            }
+        }
+
+        // 갱도 줄마다 각 층의 원래 부(富) 값을 잠깐 기억해 두고 더해서 돌려준다.
         private static void Postfix(WealthWatcher __instance, MethodBase __originalMethod, ref float __result)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountWealth);
@@ -241,23 +323,42 @@ namespace YuudongDeepMining
                 return;
             }
 
-            Map mine = MapRef(__instance);
-            List<Map> chain = CountAggregate.ChainOf(mine);
+            List<Map> chain = CountAggregate.ChainOf(MapRef(__instance));
             if (chain == null)
             {
                 return;
             }
 
-            float total = __result;
-            foreach (Map other in chain)
+            Map root = chain[0];
+            if (!entries.TryGetValue(root, out Entry e))
             {
-                if (other != mine)
+                if (entries.Count > 16)
                 {
-                    total += CountAggregate.Raw(() => (float)__originalMethod.Invoke(other.wealthWatcher, null));
+                    entries.Clear();
+                }
+
+                entries[root] = e = new Entry();
+            }
+
+            if (CountAggregate.Stale(ref e.stampTicks, ref e.stampMs))
+            {
+                Array.Clear(e.sums, 0, e.sums.Length);
+                foreach (Map m in chain)
+                {
+                    WealthWatcher w = m.wealthWatcher;
+                    CountAggregate.Raw(delegate
+                    {
+                        e.sums[0] += w.WealthTotal;
+                        e.sums[1] += w.WealthItems;
+                        e.sums[2] += w.WealthBuildings;
+                        e.sums[3] += w.WealthFloorsOnly;
+                        e.sums[4] += w.WealthPawns;
+                        return 0;
+                    });
                 }
             }
 
-            __result = total;
+            __result = e.sums[IndexOf(__originalMethod)];
         }
     }
 }

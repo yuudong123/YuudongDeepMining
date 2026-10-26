@@ -57,7 +57,7 @@ namespace YuudongDeepMining
         public const int Free = -1;
 
         // 다른 층 일거리를 다시 확인하기까지의 최소 간격 (계산을 줄이려는 것이지 층 이동을 막는 것이 아니다).
-        private const int ScanInterval = 120;
+        private const int ScanInterval = 250;
 
         // 일하러 갔는데 일이 없었던 층은 잠깐 건너뛴다 (헛걸음 기억).
         private const int WastedTicks = 2500;
