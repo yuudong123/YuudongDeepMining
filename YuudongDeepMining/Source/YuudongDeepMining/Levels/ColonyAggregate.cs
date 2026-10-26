@@ -45,6 +45,7 @@ namespace YuudongDeepMining
 
         public static T Compute<T>(System.Func<T> func)
         {
+            bool old = computing;
             computing = true;
             try
             {
@@ -52,7 +53,7 @@ namespace YuudongDeepMining
             }
             finally
             {
-                computing = false;
+                computing = old;
             }
         }
     }

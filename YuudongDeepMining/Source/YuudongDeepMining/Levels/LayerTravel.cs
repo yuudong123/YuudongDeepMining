@@ -31,6 +31,9 @@ namespace YuudongDeepMining
         public IntVec3 cell = IntVec3.Invalid;
         public bool move;
 
+        // 명령 대상(상인 등 움직이는 것): 도착하면 그 대상의 지금 위치에서 명령을 고른다.
+        public Thing focus;
+
         // 사람을 옮길 때: 도착하면 이 침대로 바닐라 구조(또는 포획) 작업을 시킨다.
         public Thing bed;
         public bool capture;
@@ -45,6 +48,7 @@ namespace YuudongDeepMining
             Scribe_Values.Look(ref label, "label");
             Scribe_Values.Look(ref cell, "cell", IntVec3.Invalid);
             Scribe_Values.Look(ref move, "move", false);
+            Scribe_References.Look(ref focus, "focus");
             Scribe_References.Look(ref bed, "bed");
             Scribe_Values.Look(ref capture, "capture", false);
             Scribe_References.Look(ref destination, "destination");

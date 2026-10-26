@@ -346,10 +346,11 @@ namespace YuudongDeepMining
                     continue;
                 }
 
+                Thing focus = option.revalidateClickTarget ?? cell.GetFirstPawn(map);
                 options.Add(option.Disabled ? new FloatMenuOption(label, null) : new FloatMenuOption(label, delegate
                 {
                     IssueLocal(local, clickPos, cell, label, false);
-                    Issue(pawns, map, cell, label, false);
+                    Issue(pawns, map, cell, label, false, focus);
                 }));
             }
 
@@ -393,7 +394,7 @@ namespace YuudongDeepMining
             }
         }
 
-        private static void Issue(List<Pawn> pawns, Map map, IntVec3 cell, string label, bool move)
+        private static void Issue(List<Pawn> pawns, Map map, IntVec3 cell, string label, bool move, Thing focus = null)
         {
             GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
             if (comp == null)
@@ -405,7 +406,7 @@ namespace YuudongDeepMining
             {
                 if (pawn.Spawned && !pawn.Dead)
                 {
-                    comp.SetOrder(pawn, new TravelOrder { target = map, kind = TravelKind.Remote, label = label, cell = cell, move = move });
+                    comp.SetOrder(pawn, new TravelOrder { target = map, kind = TravelKind.Remote, label = label, cell = cell, move = move, focus = focus });
                 }
             }
 
@@ -431,7 +432,13 @@ namespace YuudongDeepMining
                     return;
                 }
 
-                List<FloatMenuOption> options = FloatMenuMakerMap.GetOptions(new List<Pawn> { pawn }, order.cell.ToVector3Shifted(), out FloatMenuContext _);
+                Vector3 clickPos = order.cell.ToVector3Shifted();
+                if (order.focus != null && order.focus.Spawned && order.focus.Map == map)
+                {
+                    clickPos = order.focus is Pawn ? order.focus.DrawPos : order.focus.Position.ToVector3Shifted();
+                }
+
+                List<FloatMenuOption> options = FloatMenuMakerMap.GetOptions(new List<Pawn> { pawn }, clickPos, out FloatMenuContext _);
                 FloatMenuOption match = options.FirstOrDefault(o => o.Label == order.label && !o.Disabled);
                 if (match != null)
                 {

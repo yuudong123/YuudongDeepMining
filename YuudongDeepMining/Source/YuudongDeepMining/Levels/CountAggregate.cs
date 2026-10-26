@@ -259,19 +259,116 @@ namespace YuudongDeepMining
 
             // 이 층 값도 합산 없이 다시 센다 (바닐라가 자원 수를 쓰면 이미 묶음 합산이 들어가 있으므로).
             object[] args = { bill };
-            int total = CountAggregate.Raw(() => (int)__originalMethod.Invoke(__instance, args));
-            foreach (Map other in chain)
+            __result = ColonyAggregate.Compute(delegate
             {
-                if (other == mine)
+                int total = CountAggregate.Raw(() => (int)__originalMethod.Invoke(__instance, args));
+                foreach (Map other in chain)
                 {
-                    continue;
+                    if (other == mine)
+                    {
+                        continue;
+                    }
+
+                    IntVec3 cell = LayerUtility.ArrivalCellOn(mine, other);
+                    total += CountAggregate.Raw(() => GhostUtility.RunThings(new[] { giver }, other, _ => cell, () => (int)__originalMethod.Invoke(__instance, args), 0));
                 }
 
-                IntVec3 cell = LayerUtility.ArrivalCellOn(mine, other);
-                total += CountAggregate.Raw(() => GhostUtility.RunThings(new[] { giver }, other, _ => cell, () => (int)__originalMethod.Invoke(__instance, args), 0));
+                // 장착품 포함 지시서: 바닐라 기본 세기만 고친다 (따로 세는 하위 클래스는 그대로).
+                if (bill.includeEquipped && __originalMethod.DeclaringType == typeof(RecipeWorkerCounter))
+                {
+                    total += EquipmentCorrection(__instance, bill, chain);
+                }
+
+                return total;
+            });
+        }
+
+        // 바닐라는 층마다 '그 지도 정착민 목록'의 장착품·옷·소지품을 센다. 같은 림이 두 층 목록에 걸려 있으면 두 번 세진다.
+        // 층마다 센 만큼 빼고, 실제로 그 층에 있는 림(한 명당 한 번)으로 다시 센 만큼 더한다.
+        // 다른 층에 있는데 이 층 목록에 남은 림을 찾으면 진단 로그를 남기고 목록에서 뺀다.
+        private static int EquipmentCorrection(RecipeWorkerCounter counter, Bill_Production bill, List<Map> chain)
+        {
+            ThingDef def = counter.recipe.products[0].thingDef;
+            int counted = 0;
+            int actual = 0;
+            HashSet<Pawn> seen = new HashSet<Pawn>();
+            List<(Map, Pawn)> stale = null;
+            foreach (Map m in chain)
+            {
+                foreach (Pawn p in m.mapPawns.FreeColonistsSpawned)
+                {
+                    int n = EquipmentOf(counter, p, bill, def);
+                    counted += n;
+                    if (p.Spawned && p.Map == m)
+                    {
+                        if (seen.Add(p))
+                        {
+                            actual += n;
+                        }
+                    }
+                    else
+                    {
+                        (stale ??= new List<(Map, Pawn)>()).Add((m, p));
+                    }
+                }
             }
 
-            __result = total;
+            if (stale != null)
+            {
+                foreach ((Map m, Pawn p) in stale)
+                {
+                    LayerDebug.LogOnce("stale-registry" + p.ThingID + m.uniqueID, "pawn list of " + LayerUtility.LayerLabel(LayerUtility.DepthOf(m)) + " still had " + p.LabelShort
+                        + " (actually " + (p.Spawned ? LayerUtility.LayerLabel(LayerUtility.DepthOf(p.Map)) : "not spawned") + "); removed");
+                    m.mapPawns.UpdateRegistryForPawn(p);
+                }
+            }
+
+            if (counted != actual)
+            {
+                LayerDebug.LogOnce("equip-count" + bill.GetUniqueLoadID(), "bill " + bill.LabelCap + ": equipped counted per level " + counted + ", actual " + actual);
+            }
+
+            return actual - counted;
+        }
+
+        private static int EquipmentOf(RecipeWorkerCounter counter, Pawn p, Bill_Production bill, ThingDef def)
+        {
+            int n = 0;
+            if (p.equipment != null)
+            {
+                foreach (ThingWithComps t in p.equipment.AllEquipmentListForReading)
+                {
+                    if (counter.CountValidThing(t, bill, def))
+                    {
+                        n += t.stackCount;
+                    }
+                }
+            }
+
+            if (p.apparel != null)
+            {
+                foreach (Apparel t in p.apparel.WornApparel)
+                {
+                    if (counter.CountValidThing(t, bill, def))
+                    {
+                        n += t.stackCount;
+                    }
+                }
+            }
+
+            if (p.inventory != null)
+            {
+                ThingOwner held = p.inventory.GetDirectlyHeldThings();
+                for (int i = 0; i < held.Count; i++)
+                {
+                    if (counter.CountValidThing(held[i], bill, def))
+                    {
+                        n += held[i].stackCount;
+                    }
+                }
+            }
+
+            return n;
         }
     }
 
