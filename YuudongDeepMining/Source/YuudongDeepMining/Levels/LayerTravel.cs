@@ -488,7 +488,13 @@ namespace YuudongDeepMining
         private static void Postfix(JobGiver_Work __instance, Pawn pawn, ref ThinkResult __result)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.WorkProbe);
-            if (__instance.emergency || GhostUtility.Active || !LayerTravelUtility.CanUseLayers(pawn))
+            if (GhostUtility.Active || !LayerTravelUtility.CanUseLayers(pawn))
+            {
+                return;
+            }
+
+            // 긴급 작업(소화 등): 이 층에 긴급 작업이 없을 때만 다른 층을 본다. 순위 비교 없이 가까운 층으로 간다.
+            if (__instance.emergency && __result.Job != null)
             {
                 return;
             }
@@ -499,8 +505,8 @@ namespace YuudongDeepMining
                 return;
             }
 
-            int rankHere = LayerTravelUtility.Rank(pawn, __result.Job);
-            if (!comp.ScanDue(pawn, typeof(JobGiver_Work)))
+            int rankHere = __instance.emergency ? int.MaxValue : LayerTravelUtility.Rank(pawn, __result.Job);
+            if (!comp.ScanDue(pawn, __instance.emergency ? "emergency" : (object)typeof(JobGiver_Work)))
             {
                 return;
             }

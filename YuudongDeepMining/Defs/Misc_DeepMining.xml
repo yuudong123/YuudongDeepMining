@@ -115,6 +115,99 @@
     </requiredCapacities>
   </WorkGiverDef>
 
+  <!-- 건설 담당도 다른 층 청사진 재료를 직접 가져간다 (바닐라 건설 재료 운반 ConstructDeliverResourcesToBlueprints와 같은 순서 자리 60). -->
+  <WorkGiverDef>
+    <defName>YDM_SupplyConstructionAcrossLayers_Construction</defName>
+    <label>bring construction materials to another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyConstructionAcrossLayers</giverClass>
+    <workType>Construction</workType>
+    <verb>bring</verb>
+    <gerund>bringing construction materials</gerund>
+    <priorityInType>60</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <!-- 제작 담당도 자기 작업대 일의 재료를 다른 층에서 가져간다 (그 작업 종류의 작업대 일들 바로 뒤 순서). -->
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers_Cooking</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Cooking</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>25</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers_Crafting</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Crafting</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>75</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers_Smithing</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Smithing</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>45</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers_Tailoring</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Tailoring</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>105</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers_Art</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Art</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>95</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>YDM_SupplyBillsAcrossLayers_Doctor</defName>
+    <label>bring ingredients to a workbench on another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyBillsAcrossLayers</giverClass>
+    <workType>Doctor</workType>
+    <verb>bring</verb>
+    <gerund>bringing ingredients</gerund>
+    <priorityInType>25</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
   <WorkGiverDef>
     <defName>YDM_HaulAcrossLayers</defName>
     <label>haul to another level</label>

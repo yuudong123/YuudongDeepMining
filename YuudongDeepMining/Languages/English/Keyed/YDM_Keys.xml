@@ -40,6 +40,7 @@
   <YDM.Perf.Cat.Infestation>infestations</YDM.Perf.Cat.Infestation>
   <YDM.Perf.Cat.LevelPanel>level panel</YDM.Perf.Cat.LevelPanel>
   <YDM.Perf.Cat.Chain>shaft chain lookup</YDM.Perf.Cat.Chain>
+  <YDM.RemoteDraft>Draft</YDM.RemoteDraft>
   <YDM.Surface>surface</YDM.Surface>
   <YDM.LayerN>underground level {0}</YDM.LayerN>
   <YDM.GoDown>Go down to {0}</YDM.GoDown>

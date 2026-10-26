@@ -10,6 +10,27 @@
   <YDM_SupplyConstructionAcrossLayers.label>다른 층 청사진으로 건설 재료 가져가기</YDM_SupplyConstructionAcrossLayers.label>
   <YDM_SupplyConstructionAcrossLayers.verb>재료 운반</YDM_SupplyConstructionAcrossLayers.verb>
   <YDM_SupplyConstructionAcrossLayers.gerund>건설 재료를 가져가는 중</YDM_SupplyConstructionAcrossLayers.gerund>
+  <YDM_SupplyConstructionAcrossLayers_Construction.label>다른 층 청사진으로 건설 재료 가져가기</YDM_SupplyConstructionAcrossLayers_Construction.label>
+  <YDM_SupplyConstructionAcrossLayers_Construction.verb>재료 운반</YDM_SupplyConstructionAcrossLayers_Construction.verb>
+  <YDM_SupplyConstructionAcrossLayers_Construction.gerund>건설 재료를 가져가는 중</YDM_SupplyConstructionAcrossLayers_Construction.gerund>
+  <YDM_SupplyBillsAcrossLayers_Cooking.label>다른 층 작업대로 재료 가져가기</YDM_SupplyBillsAcrossLayers_Cooking.label>
+  <YDM_SupplyBillsAcrossLayers_Cooking.verb>재료 운반</YDM_SupplyBillsAcrossLayers_Cooking.verb>
+  <YDM_SupplyBillsAcrossLayers_Cooking.gerund>재료를 가져가는 중</YDM_SupplyBillsAcrossLayers_Cooking.gerund>
+  <YDM_SupplyBillsAcrossLayers_Crafting.label>다른 층 작업대로 재료 가져가기</YDM_SupplyBillsAcrossLayers_Crafting.label>
+  <YDM_SupplyBillsAcrossLayers_Crafting.verb>재료 운반</YDM_SupplyBillsAcrossLayers_Crafting.verb>
+  <YDM_SupplyBillsAcrossLayers_Crafting.gerund>재료를 가져가는 중</YDM_SupplyBillsAcrossLayers_Crafting.gerund>
+  <YDM_SupplyBillsAcrossLayers_Smithing.label>다른 층 작업대로 재료 가져가기</YDM_SupplyBillsAcrossLayers_Smithing.label>
+  <YDM_SupplyBillsAcrossLayers_Smithing.verb>재료 운반</YDM_SupplyBillsAcrossLayers_Smithing.verb>
+  <YDM_SupplyBillsAcrossLayers_Smithing.gerund>재료를 가져가는 중</YDM_SupplyBillsAcrossLayers_Smithing.gerund>
+  <YDM_SupplyBillsAcrossLayers_Tailoring.label>다른 층 작업대로 재료 가져가기</YDM_SupplyBillsAcrossLayers_Tailoring.label>
+  <YDM_SupplyBillsAcrossLayers_Tailoring.verb>재료 운반</YDM_SupplyBillsAcrossLayers_Tailoring.verb>
+  <YDM_SupplyBillsAcrossLayers_Tailoring.gerund>재료를 가져가는 중</YDM_SupplyBillsAcrossLayers_Tailoring.gerund>
+  <YDM_SupplyBillsAcrossLayers_Art.label>다른 층 작업대로 재료 가져가기</YDM_SupplyBillsAcrossLayers_Art.label>
+  <YDM_SupplyBillsAcrossLayers_Art.verb>재료 운반</YDM_SupplyBillsAcrossLayers_Art.verb>
+  <YDM_SupplyBillsAcrossLayers_Art.gerund>재료를 가져가는 중</YDM_SupplyBillsAcrossLayers_Art.gerund>
+  <YDM_SupplyBillsAcrossLayers_Doctor.label>다른 층 작업대로 재료 가져가기</YDM_SupplyBillsAcrossLayers_Doctor.label>
+  <YDM_SupplyBillsAcrossLayers_Doctor.verb>재료 운반</YDM_SupplyBillsAcrossLayers_Doctor.verb>
+  <YDM_SupplyBillsAcrossLayers_Doctor.gerund>재료를 가져가는 중</YDM_SupplyBillsAcrossLayers_Doctor.gerund>
   <YDM_HaulAcrossLayers.label>다른 층으로 운반</YDM_HaulAcrossLayers.label>
   <YDM_HaulAcrossLayers.verb>운반</YDM_HaulAcrossLayers.verb>
   <YDM_HaulAcrossLayers.gerund>운반하는 중</YDM_HaulAcrossLayers.gerund>

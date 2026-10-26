@@ -40,6 +40,7 @@
   <YDM.Perf.Cat.Infestation>곤충군락</YDM.Perf.Cat.Infestation>
   <YDM.Perf.Cat.LevelPanel>층 패널</YDM.Perf.Cat.LevelPanel>
   <YDM.Perf.Cat.Chain>갱도 줄 찾기</YDM.Perf.Cat.Chain>
+  <YDM.RemoteDraft>소집</YDM.RemoteDraft>
   <YDM.Surface>지상</YDM.Surface>
   <YDM.LayerN>지하 {0}층</YDM.LayerN>
   <YDM.GoDown>{0}(으)로 내려가기</YDM.GoDown>

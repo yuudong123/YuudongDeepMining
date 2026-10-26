@@ -40,6 +40,19 @@ namespace YuudongDeepMining
             remote.Remove(pawn);
         }
 
+        public static void Add(Pawn pawn)
+        {
+            if (pawn != null && !remote.Contains(pawn))
+            {
+                remote.Add(pawn);
+            }
+        }
+
+        public static bool IsRemote(Pawn pawn)
+        {
+            return remote.Contains(pawn);
+        }
+
         // 층을 바꾸고, 선택했던 림은 원격 선택으로 넘기며, 이 층에 있는 원격 선택 림은 다시 선택한다.
         public static void SwitchTo(Map target)
         {
@@ -147,7 +160,31 @@ namespace YuudongDeepMining
                 Event.current.Use();
             }
 
+            // 이 층에서 아무도 선택하지 않았으면 소집 단축키는 원격 선택 림에게 (선택이 있으면 바닐라 소집 버튼이 함께 처리한다).
+            if (remote.Count > 0 && Find.Selector.NumSelected == 0 && KeyBindingDefOf.Command_ColonistDraft.KeyDownEvent)
+            {
+                MultiLevelSelection.ToggleRemoteDraft();
+                Event.current.Use();
+            }
+
             Event e = Event.current;
+            if (e.type == EventType.MouseDown && e.button == 0 && Selector.ShiftIsHeld && Find.ColonistBar.ColonistOrCorpseAt(UI.MousePositionOnUIInverted) is Pawn clicked
+                && MultiLevelSelection.Eligible(clicked, map))
+            {
+                if (remote.Contains(clicked))
+                {
+                    remote.Remove(clicked);
+                }
+                else
+                {
+                    remote.Add(clicked);
+                }
+
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                e.Use();
+                return;
+            }
+
             if (e.type == EventType.MouseDown)
             {
                 LayerDebug.LogUI("mouse down: button " + e.button + ", remote " + remote.Count + ", selected pawns " + Find.Selector.SelectedPawns.Count
@@ -228,7 +265,12 @@ namespace YuudongDeepMining
 
             if (remote.Count > 0)
             {
-                Widgets.Label(new Rect(inner.x, y + 2f, inner.width - 20f, 18f), "YDM.RemoteSelected".Translate(remote.Count));
+                Widgets.Label(new Rect(inner.x, y + 2f, inner.width - 64f, 18f), "YDM.RemoteSelected".Translate(remote.Count));
+                if (Widgets.ButtonText(new Rect(inner.xMax - 62f, y + 1f, 44f, 18f), "YDM.RemoteDraft".Translate()))
+                {
+                    MultiLevelSelection.ToggleRemoteDraft();
+                }
+
                 if (Widgets.ButtonImage(new Rect(inner.xMax - 16f, y + 3f, 14f, 14f), TexButton.CloseXSmall))
                 {
                     remote.Clear();
@@ -263,25 +305,36 @@ namespace YuudongDeepMining
         // 원격 선택 림으로 우클릭 메뉴를 만든다.
         public static void OpenMenu(Vector3 clickPos)
         {
+            OpenMenu(clickPos, new List<Pawn>());
+        }
+
+        // local: 이 층에서 바닐라로 선택한 림. 원격 선택 림과 함께 한 메뉴로 명령한다.
+        public static void OpenMenu(Vector3 clickPos, List<Pawn> local)
+        {
             Map map = Find.CurrentMap;
             IntVec3 cell = IntVec3.FromVector3(clickPos);
             List<Pawn> pawns = remote.Where(p => p.Spawned && p.CanTakeOrder && p.Map != map && LayerUtility.SameChain(p.Map, map)).ToList();
-            LayerDebug.LogUI("right-click at " + cell + ": remote " + remote.Count + ", usable " + pawns.Count);
+            LayerDebug.LogUI("right-click at " + cell + ": remote " + remote.Count + ", usable " + pawns.Count + ", local " + local.Count);
             if (pawns.Count == 0 || !cell.InBounds(map))
             {
                 Messages.Message("YDM.RemoteNoOptions".Translate(), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
+            List<Pawn> everyone = local.Concat(pawns).ToList();
             List<FloatMenuOption> vanilla = GhostUtility.Run(pawns, map, p => LayerUtility.ArrivalCellOn(p.Map, map),
-                () => FloatMenuMakerMap.GetOptions(pawns.ToList(), clickPos, out FloatMenuContext _), new List<FloatMenuOption>());
+                () => FloatMenuMakerMap.GetOptions(everyone.ToList(), clickPos, out FloatMenuContext _), new List<FloatMenuOption>());
 
             LayerDebug.Log(pawns[0], "remote menu at " + cell + ": " + vanilla.Count + " vanilla options");
             List<FloatMenuOption> options = new List<FloatMenuOption>();
             IntVec3 moveCell = cell.Standable(map) ? cell : CellFinder.StandableCellNear(cell, map, 3f);
             if (moveCell.IsValid)
             {
-                options.Add(new FloatMenuOption("YDM.RemoteMoveHere".Translate(), () => Issue(pawns, map, moveCell, null, true)));
+                options.Add(new FloatMenuOption("YDM.RemoteMoveHere".Translate(), delegate
+                {
+                    IssueLocal(local, clickPos, moveCell, null, true);
+                    Issue(pawns, map, moveCell, null, true);
+                }));
             }
 
             HashSet<string> seen = new HashSet<string>();
@@ -293,7 +346,11 @@ namespace YuudongDeepMining
                     continue;
                 }
 
-                options.Add(option.Disabled ? new FloatMenuOption(label, null) : new FloatMenuOption(label, () => Issue(pawns, map, cell, label, false)));
+                options.Add(option.Disabled ? new FloatMenuOption(label, null) : new FloatMenuOption(label, delegate
+                {
+                    IssueLocal(local, clickPos, cell, label, false);
+                    Issue(pawns, map, cell, label, false);
+                }));
             }
 
             if (options.Count == 0)
@@ -302,8 +359,38 @@ namespace YuudongDeepMining
                 return;
             }
 
-            string title = pawns.Count == 1 ? "YDM.RemoteMenuTitle".Translate(pawns[0].LabelShortCap).ToString() : "YDM.RemoteMenuTitleMulti".Translate(pawns.Count).ToString();
+            string title = everyone.Count == 1 ? "YDM.RemoteMenuTitle".Translate(pawns[0].LabelShortCap).ToString() : "YDM.RemoteMenuTitleMulti".Translate(everyone.Count).ToString();
             Find.WindowStack.Add(new FloatMenu(options, title));
+        }
+
+        private static void IssueLocal(List<Pawn> local, Vector3 clickPos, IntVec3 cell, string label, bool move)
+        {
+            if (local.Count == 0)
+            {
+                return;
+            }
+
+            if (move)
+            {
+                foreach (Pawn pawn in local)
+                {
+                    pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Goto, cell), JobTag.Misc);
+                }
+
+                return;
+            }
+
+            FloatMenuOption together = FloatMenuMakerMap.GetOptions(local.ToList(), clickPos, out FloatMenuContext _).FirstOrDefault(o => o.Label == label && !o.Disabled);
+            if (together != null)
+            {
+                together.Chosen(true, null);
+                return;
+            }
+
+            foreach (Pawn pawn in local)
+            {
+                FloatMenuMakerMap.GetOptions(new List<Pawn> { pawn }, clickPos, out FloatMenuContext _).FirstOrDefault(o => o.Label == label && !o.Disabled)?.Chosen(true, null);
+            }
         }
 
         private static void Issue(List<Pawn> pawns, Map map, IntVec3 cell, string label, bool move)
@@ -398,13 +485,14 @@ namespace YuudongDeepMining
                 return;
             }
 
-            if (Find.Selector.SelectedPawns.Any())
+            List<Pawn> local = Find.Selector.SelectedPawns.Where(p => p.CanTakeOrder && p.Map == Find.CurrentMap).ToList();
+            if (local.Count > 0 && !RemoteControl.Remote.Any(p => MultiLevelSelection.Eligible(p, Find.CurrentMap)))
             {
-                LayerDebug.LogUI("right-click: vanilla pawns selected, vanilla menu");
+                LayerDebug.LogUI("right-click: no usable remote pawns, vanilla menu");
                 return;
             }
 
-            RemoteControl.OpenMenu(UI.MouseMapPosition());
+            RemoteControl.OpenMenu(UI.MouseMapPosition(), local);
             e.Use();
         }
     }

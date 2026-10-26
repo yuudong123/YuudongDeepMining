@@ -19,12 +19,18 @@ namespace YuudongDeepMining
         }
 
         // 같은 지도·같은 물건 종류의 '받아줄 층' 판단은 잠깐 기억해 둔다 (운반꾼마다 매번 모든 층 창고를 뒤지지 않도록).
-        private static readonly Dictionary<(Map, ThingDef), CacheEntry> cache = new Dictionary<(Map, ThingDef), CacheEntry>();
+        private static readonly Dictionary<(Map, ThingDef, StoragePriority), CacheEntry> cache = new Dictionary<(Map, ThingDef, StoragePriority), CacheEntry>();
 
         private const int CacheTicks = 250;
 
         // 이 물건을 받아줄 창고가 있는 다른 층.
         public static Map StorageLayerFor(Thing t, Faction faction, Map from, bool useCache)
+        {
+            return StorageLayerFor(t, faction, from, useCache, StoragePriority.Unstored);
+        }
+
+        // 이 물건을 지금 보관 우선순위(current)보다 높은 창고에 받아줄 다른 층.
+        public static Map StorageLayerFor(Thing t, Faction faction, Map from, bool useCache, StoragePriority current)
         {
             if (from == null)
             {
@@ -32,7 +38,7 @@ namespace YuudongDeepMining
             }
 
             int now = Find.TickManager.TicksGame;
-            (Map, ThingDef) key = (from, t.def);
+            (Map, ThingDef, StoragePriority) key = (from, t.def, current);
             if (useCache && cache.TryGetValue(key, out CacheEntry entry) && now - entry.tick < CacheTicks && (entry.target == null || !entry.target.Disposed))
             {
                 return entry.target;
@@ -48,7 +54,7 @@ namespace YuudongDeepMining
                     continue;
                 }
 
-                if (!StoreUtility.TryFindBestBetterStoreCellFor(t, null, other, StoragePriority.Unstored, faction, out IntVec3 cell, false))
+                if (!StoreUtility.TryFindBestBetterStoreCellFor(t, null, other, current, faction, out IntVec3 cell, false))
                 {
                     if (DeepMiningMod.Settings.debugLog)
                     {
@@ -76,6 +82,69 @@ namespace YuudongDeepMining
 
             cache[key] = new CacheEntry { target = found, tick = now };
             return found;
+        }
+
+        private struct StoredEntry
+        {
+            public List<Thing> things;
+            public int stampTicks;
+            public long stampMs;
+        }
+
+        private static readonly Dictionary<Map, StoredEntry> storedCache = new Dictionary<Map, StoredEntry>();
+
+        // 이 층 창고에 있지만, 다른 층에 우선순위가 더 높고 그 물건을 받는 창고가 있는 물건들.
+        // 다른 층에 더 높은 창고가 하나도 없으면 바로 빈 목록이라 보통은 거의 비용이 없다.
+        public static List<Thing> StoredCandidates(Map map)
+        {
+            if (!storedCache.TryGetValue(map, out StoredEntry e))
+            {
+                e = new StoredEntry { things = new List<Thing>() };
+            }
+
+            if (!CountAggregate.Stale(ref e.stampTicks, ref e.stampMs))
+            {
+                return e.things;
+            }
+
+            e.things = new List<Thing>();
+            List<SlotGroup> others = new List<SlotGroup>();
+            foreach (Map other in LayerUtility.Chain(map))
+            {
+                if (other != map)
+                {
+                    others.AddRange(other.haulDestinationManager.AllGroupsListInPriorityOrder);
+                }
+            }
+
+            if (others.Count > 0)
+            {
+                foreach (SlotGroup group in map.haulDestinationManager.AllGroupsListInPriorityOrder)
+                {
+                    StoragePriority p = group.Settings.Priority;
+                    List<SlotGroup> better = others.Where(o => o.Settings.Priority > p).ToList();
+                    if (better.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (Thing t in group.HeldThings)
+                    {
+                        if (better.Any(o => o.Settings.AllowedToAccept(t)))
+                        {
+                            e.things.Add(t);
+                        }
+                    }
+                }
+            }
+
+            if (storedCache.Count > 32)
+            {
+                storedCache.Clear();
+            }
+
+            storedCache[map] = e;
+            return e.things;
         }
 
         // 물건을 든 채 포털을 지난다 (바닐라 사다리 이동은 소집 안 한 림의 물건을 내려놓게 하므로 따로 만든다).
@@ -205,29 +274,33 @@ namespace YuudongDeepMining
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
         {
             Map map = pawn.Map;
-            return map == null || (!LayerUtility.IsLayer(map) && LayerUtility.MapBelow(map) == null) || map.listerHaulables.ThingsPotentiallyNeedingHauling().Count == 0;
+            return map == null || (!LayerUtility.IsLayer(map) && LayerUtility.MapBelow(map) == null)
+                || (map.listerHaulables.ThingsPotentiallyNeedingHauling().Count == 0 && HaulAcrossUtility.StoredCandidates(map).Count == 0);
         }
 
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
-            return pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
+            ICollection<Thing> loose = pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
+            List<Thing> stored = HaulAcrossUtility.StoredCandidates(pawn.Map);
+            return stored.Count == 0 ? loose : loose.Concat(stored);
         }
 
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.HaulScan);
-            if (t.IsInValidStorage() || !HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced))
+            if (!HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced))
             {
                 return false;
             }
 
-            // 이 층에 둘 곳이 있으면 바닐라 운반에 맡긴다.
-            if (StoreUtility.TryFindBestBetterStorageFor(t, pawn, pawn.Map, StoragePriority.Unstored, pawn.Faction, out IntVec3 _, out IHaulDestination _, false))
+            // 이 층에 지금보다 좋은 창고가 있으면 바닐라 운반에 맡긴다.
+            StoragePriority current = StoreUtility.CurrentStoragePriorityOf(t);
+            if (StoreUtility.TryFindBestBetterStorageFor(t, pawn, pawn.Map, current, pawn.Faction, out IntVec3 _, out IHaulDestination _, false))
             {
                 return false;
             }
 
-            Map target = HaulAcrossUtility.StorageLayerFor(t, pawn.Faction, pawn.Map, true);
+            Map target = HaulAcrossUtility.StorageLayerFor(t, pawn.Faction, pawn.Map, true, current);
             MapPortal portal = LayerUtility.NextPortalToward(pawn.Map, target);
             bool ok = portal != null && pawn.CanReserve(t, 1, -1, null, forced) && pawn.CanReach(portal, PathEndMode.Touch, Danger.Some);
             LayerDebug.Log(pawn, "haul " + t.LabelShort + ": " + (target == null ? "no storage on other levels" : portal == null ? "no portal" : ok ? "ok -> " + LayerUtility.LayerLabel(LayerUtility.DepthOf(target)) : "can't reserve/reach"));
@@ -236,7 +309,7 @@ namespace YuudongDeepMining
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
-            Map target = HaulAcrossUtility.StorageLayerFor(t, pawn.Faction, pawn.Map, true);
+            Map target = HaulAcrossUtility.StorageLayerFor(t, pawn.Faction, pawn.Map, true, StoreUtility.CurrentStoragePriorityOf(t));
             MapPortal portal = LayerUtility.NextPortalToward(pawn.Map, target);
             if (portal == null)
             {

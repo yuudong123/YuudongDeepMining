@@ -68,6 +68,46 @@ namespace YuudongDeepMining
             return result;
         }
 
+        private static Dictionary<ThingDef, HashSet<WorkTypeDef>> benchWorkTypes;
+
+        // 이 작업 종류가 이 작업대의 이 지시서를 맡는가. 운반 작업은 모든 지시서를 맡는다 (운반꾼이 재료를 가져다 둔다).
+        public static bool HandledBy(WorkTypeDef workType, ThingDef bench, Bill bill)
+        {
+            if (workType == null || workType == WorkTypeDefOf.Hauling)
+            {
+                return true;
+            }
+
+            if (bill.recipe.requiredGiverWorkType != null)
+            {
+                return bill.recipe.requiredGiverWorkType == workType;
+            }
+
+            if (benchWorkTypes == null)
+            {
+                benchWorkTypes = new Dictionary<ThingDef, HashSet<WorkTypeDef>>();
+                foreach (WorkGiverDef wg in DefDatabase<WorkGiverDef>.AllDefsListForReading)
+                {
+                    if (wg.giverClass == null || !typeof(WorkGiver_DoBill).IsAssignableFrom(wg.giverClass) || wg.fixedBillGiverDefs == null || wg.workType == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (ThingDef b in wg.fixedBillGiverDefs)
+                    {
+                        if (!benchWorkTypes.TryGetValue(b, out HashSet<WorkTypeDef> set))
+                        {
+                            benchWorkTypes[b] = set = new HashSet<WorkTypeDef>();
+                        }
+
+                        set.Add(wg.workType);
+                    }
+                }
+            }
+
+            return benchWorkTypes.TryGetValue(bench, out HashSet<WorkTypeDef> types) && types.Contains(workType);
+        }
+
         public static void Forget(Thing benchThing)
         {
             if (benchThing is IBillGiver giver && giver.BillStack != null)
@@ -106,7 +146,7 @@ namespace YuudongDeepMining
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.BillSupply);
             Map map = pawn.Map;
             GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
-            if (!CarryPawnsUtility.InChain(map) || comp == null || !comp.ScanDue(pawn, typeof(WorkGiver_SupplyBillsAcrossLayers)))
+            if (!CarryPawnsUtility.InChain(map) || comp == null || !comp.ScanDue(pawn, (def, GhostUtility.Active)))
             {
                 return null;
             }
@@ -136,7 +176,7 @@ namespace YuudongDeepMining
 
                     foreach (Bill bill in giver.BillStack)
                     {
-                        if (bill.suspended || !bill.ShouldDoNow() || bill.recipe.ingredients.NullOrEmpty())
+                        if (bill.suspended || !bill.ShouldDoNow() || bill.recipe.ingredients.NullOrEmpty() || !BillSupplyUtility.HandledBy(def.workType, benchThing.def, bill))
                         {
                             continue;
                         }
@@ -178,7 +218,7 @@ namespace YuudongDeepMining
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.BillSupply);
             Map map = pawn.Map;
             GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
-            if (!CarryPawnsUtility.InChain(map) || comp == null || !comp.ScanDue(pawn, typeof(WorkGiver_SupplyConstructionAcrossLayers)))
+            if (!CarryPawnsUtility.InChain(map) || comp == null || !comp.ScanDue(pawn, (def, GhostUtility.Active)))
             {
                 return null;
             }
@@ -193,7 +233,7 @@ namespace YuudongDeepMining
 
                 foreach (Thing site in other.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Concat(other.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame)))
                 {
-                    if (!(site is IConstructible c) || site.Faction != Faction.OfPlayer || c.IsCompleted() || site.IsForbidden(pawn))
+                    if (!(site is IConstructible c) || site.Faction != Faction.OfPlayer || c.IsCompleted() || site.IsForbidden(Faction.OfPlayer))
                     {
                         continue;
                     }

@@ -206,6 +206,68 @@ namespace YuudongDeepMining
         }
     }
 
+    // 하단 탭(작업·일정·동물·메카노이드 등)의 림 목록: 바닐라는 보고 있는 지도의 림만 보여 준다.
+    // 같은 갱도 줄의 각 층을 '보고 있는 지도'로 놓고 탭의 원래 목록 함수를 한 번씩 돌려 합친다 (탭마다의 거르기 규칙은 그대로).
+    [HarmonyPatch]
+    internal static class MainTabWindow_PawnTable_Pawns_Patch
+    {
+        private static bool busy;
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (System.Type type in typeof(MainTabWindow_PawnTable).AllSubclasses().Concat(typeof(MainTabWindow_PawnTable)))
+            {
+                MethodInfo getter = AccessTools.DeclaredPropertyGetter(type, "Pawns");
+                if (getter != null && !getter.IsAbstract)
+                {
+                    yield return getter;
+                }
+            }
+        }
+
+        private static void Postfix(object __instance, MethodBase __originalMethod, ref IEnumerable<Pawn> __result)
+        {
+            if (busy || GhostUtility.Active || Current.ProgramState != ProgramState.Playing)
+            {
+                return;
+            }
+
+            Map current = Find.CurrentMap;
+            List<Map> chain = CountAggregate.ChainOf(current);
+            if (chain == null)
+            {
+                return;
+            }
+
+            busy = true;
+            try
+            {
+                List<Pawn> all = __result?.ToList() ?? new List<Pawn>();
+                foreach (Map other in chain)
+                {
+                    if (other == current)
+                    {
+                        continue;
+                    }
+
+                    GhostUtility.WithCurrentMap(other, delegate
+                    {
+                        if (__originalMethod.Invoke(__instance, null) is IEnumerable<Pawn> theirs)
+                        {
+                            all.AddRange(theirs);
+                        }
+                    });
+                }
+
+                __result = all.Distinct().ToList();
+            }
+            finally
+            {
+                busy = false;
+            }
+        }
+    }
+
     // 층 판단 디버그 로그 (설정에서 켬). 같은 림·같은 내용은 잠시 한 번만 남긴다.
     public static class LayerDebug
     {
