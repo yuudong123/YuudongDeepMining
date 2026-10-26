@@ -167,6 +167,8 @@ namespace YuudongDeepMining
 
         public override void GameComponentTick()
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Travel);
+            YDMProfiler.Update();
             if (Find.TickManager.TicksGame % 20 != 0 || orders.Count == 0)
             {
                 return;
@@ -383,6 +385,7 @@ namespace YuudongDeepMining
     {
         protected override Job TryGiveJob(Pawn pawn)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Travel);
             if (!LayerTravelUtility.CanUseLayers(pawn))
             {
                 return null;
@@ -439,6 +442,7 @@ namespace YuudongDeepMining
     {
         protected override Job TryGiveJob(Pawn pawn)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Travel);
             if (!LayerTravelUtility.CanUseLayers(pawn) || LayerTravelUtility.HasUrgentNeed(pawn))
             {
                 return null;
@@ -483,6 +487,7 @@ namespace YuudongDeepMining
     {
         private static void Postfix(JobGiver_Work __instance, Pawn pawn, ref ThinkResult __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.WorkProbe);
             if (__instance.emergency || GhostUtility.Active || !LayerTravelUtility.CanUseLayers(pawn))
             {
                 return;
@@ -574,6 +579,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(ThinkNode_JobGiver __instance, Pawn pawn, JobIssueParams jobParams, ref ThinkResult __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.NeedProbe);
             if (GhostUtility.Active || (__result.IsValid && !IsFallback(__result.Job)) || !CoreTypes.Contains(__instance.GetType()) || !LayerTravelUtility.CanUseLayers(pawn))
             {
                 return;

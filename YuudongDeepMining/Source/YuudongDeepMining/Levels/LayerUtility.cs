@@ -143,6 +143,7 @@ namespace YuudongDeepMining
         // 지상부터 맨 아래까지, 갱도로 이어진 지도들.
         public static List<Map> Chain(Map map)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Chain);
             List<Map> list = new List<Map>();
             Map root = Root(map);
             if (root == null)

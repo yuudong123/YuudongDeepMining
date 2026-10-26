@@ -22,6 +22,24 @@
   <YDM.RescueToLevel>Rescue {0} to a bed on {1}</YDM.RescueToLevel>
   <YDM.CaptureToLevel>Capture {0} to a prison on {1}</YDM.CaptureToLevel>
   <YDM.RemoteNoOptions>The colonists selected on another level have nothing they can do here</YDM.RemoteNoOptions>
+  <YDM.Settings.Profiler>Show performance measurement</YDM.Settings.Profiler>
+  <YDM.Settings.ProfilerDesc>Shows, above the level panel, how much time (ms) and how many calls this mod used per category over the last second, and logs it every 10 seconds. Nested categories count only their own share.</YDM.Settings.ProfilerDesc>
+  <YDM.Perf.Title>Deep Mining: {0} ms per second</YDM.Perf.Title>
+  <YDM.Perf.Cat.WorkProbe>work on other levels</YDM.Perf.Cat.WorkProbe>
+  <YDM.Perf.Cat.NeedProbe>needs on other levels</YDM.Perf.Cat.NeedProbe>
+  <YDM.Perf.Cat.HaulScan>cross-level hauling</YDM.Perf.Cat.HaulScan>
+  <YDM.Perf.Cat.BillSupply>ingredients from other levels</YDM.Perf.Cat.BillSupply>
+  <YDM.Perf.Cat.RescueScan>rescue to other levels</YDM.Perf.Cat.RescueScan>
+  <YDM.Perf.Cat.AnimalFollow>animals following</YDM.Perf.Cat.AnimalFollow>
+  <YDM.Perf.Cat.Travel>level travel</YDM.Perf.Cat.Travel>
+  <YDM.Perf.Cat.CountResources>resource counts</YDM.Perf.Cat.CountResources>
+  <YDM.Perf.Cat.CountBills>bill product counts</YDM.Perf.Cat.CountBills>
+  <YDM.Perf.Cat.CountWealth>colony wealth</YDM.Perf.Cat.CountWealth>
+  <YDM.Perf.Cat.AlertPawns>alert pawn lists</YDM.Perf.Cat.AlertPawns>
+  <YDM.Perf.Cat.Raids>raid descent</YDM.Perf.Cat.Raids>
+  <YDM.Perf.Cat.Infestation>infestations</YDM.Perf.Cat.Infestation>
+  <YDM.Perf.Cat.LevelPanel>level panel</YDM.Perf.Cat.LevelPanel>
+  <YDM.Perf.Cat.Chain>shaft chain lookup</YDM.Perf.Cat.Chain>
   <YDM.Surface>surface</YDM.Surface>
   <YDM.LayerN>underground level {0}</YDM.LayerN>
   <YDM.GoDown>Go down to {0}</YDM.GoDown>

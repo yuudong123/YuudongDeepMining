@@ -59,6 +59,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(ResourceCounter __instance, MethodBase __originalMethod, object[] __args, ref int __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
             if (CountAggregate.Computing)
             {
                 return;
@@ -97,6 +98,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(ResourceCounter __instance, MethodBase __originalMethod, ref float __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
             if (CountAggregate.Computing)
             {
                 return;
@@ -130,6 +132,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(ResourceCounter __instance, ref Dictionary<ThingDef, int> __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountResources);
             if (CountAggregate.Computing)
             {
                 return;
@@ -181,6 +184,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(RecipeWorkerCounter __instance, MethodBase __originalMethod, Bill_Production bill, ref int __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountBills);
             if (CountAggregate.Computing || bill.GetIncludeSlotGroup() != null || !(bill.billStack?.billGiver is Thing giver) || !giver.Spawned)
             {
                 return;
@@ -231,6 +235,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(WealthWatcher __instance, MethodBase __originalMethod, ref float __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.CountWealth);
             if (CountAggregate.Computing)
             {
                 return;

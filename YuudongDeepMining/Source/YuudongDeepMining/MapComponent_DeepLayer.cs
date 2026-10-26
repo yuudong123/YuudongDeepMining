@@ -21,6 +21,7 @@ namespace YuudongDeepMining
 
         public override void MapComponentTick()
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Infestation);
             int ticks = Find.TickManager.TicksGame;
             if ((ticks + map.uniqueID) % 2500 == 0)
             {
@@ -91,6 +92,7 @@ namespace YuudongDeepMining
 
         public override void MapComponentTick()
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Raids);
             if ((Find.TickManager.TicksGame + map.uniqueID) % 250 != 0)
             {
                 return;

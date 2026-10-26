@@ -23,6 +23,7 @@ namespace YuudongDeepMining
         public bool smartRaidersDescend = true;
         public bool shaftInvulnerable;
         public bool debugLog;
+        public bool profiler;
 
         public override void ExposeData()
         {
@@ -39,6 +40,7 @@ namespace YuudongDeepMining
             Scribe_Values.Look(ref smartRaidersDescend, "smartRaidersDescend", true);
             Scribe_Values.Look(ref shaftInvulnerable, "shaftInvulnerable", false);
             Scribe_Values.Look(ref debugLog, "debugLog", false);
+            Scribe_Values.Look(ref profiler, "profiler", false);
         }
     }
 
@@ -87,6 +89,7 @@ namespace YuudongDeepMining
             list.CheckboxLabeled("YDM.Settings.SmartRaiders".Translate(), ref s.smartRaidersDescend, "YDM.Settings.SmartRaidersDesc".Translate());
             list.CheckboxLabeled("YDM.Settings.ShaftInvulnerable".Translate(), ref s.shaftInvulnerable, "YDM.Settings.ShaftInvulnerableDesc".Translate());
             list.CheckboxLabeled("YDM.Settings.DebugLog".Translate(), ref s.debugLog, "YDM.Settings.DebugLogDesc".Translate());
+            list.CheckboxLabeled("YDM.Settings.Profiler".Translate(), ref s.profiler, "YDM.Settings.ProfilerDesc".Translate());
             list.End();
         }
     }

@@ -22,6 +22,24 @@
   <YDM.RescueToLevel>{0}을(를) {1} 침대로 구조</YDM.RescueToLevel>
   <YDM.CaptureToLevel>{0}을(를) {1} 감옥으로 포획</YDM.CaptureToLevel>
   <YDM.RemoteNoOptions>다른 층에서 선택한 림이 여기서 할 수 있는 명령이 없습니다</YDM.RemoteNoOptions>
+  <YDM.Settings.Profiler>성능 측정 표시</YDM.Settings.Profiler>
+  <YDM.Settings.ProfilerDesc>켜면 층 패널 위에 이 모드 코드가 최근 1초 동안 범주별로 쓴 시간(ms)과 호출 수를 보여 주고, 10초마다 로그에 남깁니다. 겹친 범주는 자기 몫만 셉니다.</YDM.Settings.ProfilerDesc>
+  <YDM.Perf.Title>심층 채굴 연산: {0}ms/초</YDM.Perf.Title>
+  <YDM.Perf.Cat.WorkProbe>다른 층 일 판단</YDM.Perf.Cat.WorkProbe>
+  <YDM.Perf.Cat.NeedProbe>다른 층 욕구 판단</YDM.Perf.Cat.NeedProbe>
+  <YDM.Perf.Cat.HaulScan>층 넘는 운반 판단</YDM.Perf.Cat.HaulScan>
+  <YDM.Perf.Cat.BillSupply>다른 층 재료 판단</YDM.Perf.Cat.BillSupply>
+  <YDM.Perf.Cat.RescueScan>다른 층 구조 판단</YDM.Perf.Cat.RescueScan>
+  <YDM.Perf.Cat.AnimalFollow>동물 따라가기</YDM.Perf.Cat.AnimalFollow>
+  <YDM.Perf.Cat.Travel>층 이동 진행</YDM.Perf.Cat.Travel>
+  <YDM.Perf.Cat.CountResources>자원 수 합산</YDM.Perf.Cat.CountResources>
+  <YDM.Perf.Cat.CountBills>작업 지시서 개수 합산</YDM.Perf.Cat.CountBills>
+  <YDM.Perf.Cat.CountWealth>정착지 부 합산</YDM.Perf.Cat.CountWealth>
+  <YDM.Perf.Cat.AlertPawns>알림 정착민 목록 합산</YDM.Perf.Cat.AlertPawns>
+  <YDM.Perf.Cat.Raids>습격대 하강</YDM.Perf.Cat.Raids>
+  <YDM.Perf.Cat.Infestation>곤충군락</YDM.Perf.Cat.Infestation>
+  <YDM.Perf.Cat.LevelPanel>층 패널</YDM.Perf.Cat.LevelPanel>
+  <YDM.Perf.Cat.Chain>갱도 줄 찾기</YDM.Perf.Cat.Chain>
   <YDM.Surface>지상</YDM.Surface>
   <YDM.LayerN>지하 {0}층</YDM.LayerN>
   <YDM.GoDown>{0}(으)로 내려가기</YDM.GoDown>

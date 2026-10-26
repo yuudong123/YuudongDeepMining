@@ -10,6 +10,7 @@ namespace YuudongDeepMining
     {
         protected override Job TryGiveJob(Pawn pawn)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.AnimalFollow);
             if (!pawn.Spawned || pawn.Downed || pawn.Faction != Faction.OfPlayer || !pawn.RaceProps.Animal || pawn.InMentalState)
             {
                 return null;

@@ -102,6 +102,7 @@ namespace YuudongDeepMining
     {
         public override Job NonScanJob(Pawn pawn)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.BillSupply);
             Map map = pawn.Map;
             GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
             if (!CarryPawnsUtility.InChain(map) || comp == null || !comp.ScanDue(pawn, typeof(WorkGiver_SupplyBillsAcrossLayers)))

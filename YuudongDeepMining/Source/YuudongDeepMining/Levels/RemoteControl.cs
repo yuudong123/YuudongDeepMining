@@ -99,6 +99,7 @@ namespace YuudongDeepMining
 
         public static void OnGUI()
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.LevelPanel);
             Map map = Find.CurrentMap;
             if (map == null || WorldRendererUtility.WorldSelected || Find.UIRoot.screenshotMode.FiltersCurrentEvent)
             {
@@ -134,6 +135,7 @@ namespace YuudongDeepMining
                 Event.current.Use();
             }
 
+            YDMProfiler.Update();
             Event e = Event.current;
             if (e.type == EventType.MouseDown)
             {
@@ -158,6 +160,7 @@ namespace YuudongDeepMining
             // 오른쪽 아래, 날짜·속도 컨트롤(GlobalControls) 왼쪽. 오른쪽 위는 알림 칸과 겹친다.
             Rect outer = new Rect(UI.screenWidth - GlobalControls.Width - PanelWidth - 12f, UI.screenHeight - 35f - height - 8f, PanelWidth, height);
             panelRect = outer;
+            YDMProfiler.Draw(outer);
             Widgets.DrawWindowBackground(outer);
             Rect inner = outer.ContractedBy(5f);
             Text.Font = GameFont.Tiny;

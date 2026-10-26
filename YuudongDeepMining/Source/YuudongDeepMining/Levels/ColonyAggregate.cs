@@ -89,6 +89,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(MapPawns __instance, MethodBase __originalMethod, ref List<Pawn> __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.AlertPawns);
             if (!ColonyAggregate.Active)
             {
                 return;
@@ -141,6 +142,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(MapPawns __instance, MethodBase __originalMethod, ref int __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.AlertPawns);
             if (!ColonyAggregate.Active)
             {
                 return;
@@ -181,6 +183,7 @@ namespace YuudongDeepMining
 
         private static void Postfix(MapPawns __instance, MethodBase __originalMethod, ref bool __result)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.AlertPawns);
             if (!ColonyAggregate.Active)
             {
                 return;

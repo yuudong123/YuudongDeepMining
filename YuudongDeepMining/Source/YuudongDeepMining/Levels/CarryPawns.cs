@@ -174,6 +174,7 @@ namespace YuudongDeepMining
 
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.RescueScan);
             if (!(t is Pawn takee) || takee == pawn || !HealthAIUtility.CanRescueNow(pawn, takee, forced))
             {
                 return false;

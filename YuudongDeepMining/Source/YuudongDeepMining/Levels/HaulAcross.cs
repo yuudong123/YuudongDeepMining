@@ -215,6 +215,7 @@ namespace YuudongDeepMining
 
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.HaulScan);
             if (t.IsInValidStorage() || !HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced))
             {
                 return false;
