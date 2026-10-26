@@ -101,6 +101,20 @@
     </requiredCapacities>
   </WorkGiverDef>
 
+  <!-- 다른 층 청사진·틀에 모자란 건설 재료 가져가기. 바닐라 청사진 재료 운반(DeliverResourcesToBlueprints, 9)과 같은 순서 자리. -->
+  <WorkGiverDef>
+    <defName>YDM_SupplyConstructionAcrossLayers</defName>
+    <label>bring construction materials to another level</label>
+    <giverClass>YuudongDeepMining.WorkGiver_SupplyConstructionAcrossLayers</giverClass>
+    <workType>Hauling</workType>
+    <verb>bring</verb>
+    <gerund>bringing construction materials</gerund>
+    <priorityInType>9</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
   <WorkGiverDef>
     <defName>YDM_HaulAcrossLayers</defName>
     <label>haul to another level</label>

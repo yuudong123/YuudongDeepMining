@@ -166,4 +166,164 @@ namespace YuudongDeepMining
             return null;
         }
     }
+
+    // 운반 작업: 다른 층 청사진·건설 중인 틀에 모자란 건설 재료를 이 층에서 가져간다.
+    // 바닐라 건설 재료 운반은 그 지도 안에서만 재료를 찾으므로, 그 층에 없는 몫만 들고 가서 청사진 옆에 내려놓는다.
+    // 그다음(틀에 넣고 짓기)은 바닐라가 그 층에서 한다.
+    public class WorkGiver_SupplyConstructionAcrossLayers : WorkGiver
+    {
+        public override Job NonScanJob(Pawn pawn)
+        {
+            using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.BillSupply);
+            Map map = pawn.Map;
+            GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
+            if (!CarryPawnsUtility.InChain(map) || comp == null || !comp.ScanDue(pawn, typeof(WorkGiver_SupplyConstructionAcrossLayers)))
+            {
+                return null;
+            }
+
+            foreach (Map other in LayerUtility.Chain(map))
+            {
+                MapPortal portal = other == map ? null : LayerUtility.NextPortalToward(map, other);
+                if (portal == null || !pawn.CanReach(portal, PathEndMode.Touch, Danger.Deadly))
+                {
+                    continue;
+                }
+
+                foreach (Thing site in other.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Concat(other.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame)))
+                {
+                    if (!(site is IConstructible c) || site.Faction != Faction.OfPlayer || c.IsCompleted() || site.IsForbidden(pawn))
+                    {
+                        continue;
+                    }
+
+                    foreach (ThingDefCountClass cost in c.TotalMaterialCost())
+                    {
+                        int missing = c.ThingCountNeeded(cost.thingDef) - CountOn(other, cost.thingDef, pawn) - InTransit(site, cost.thingDef);
+                        if (missing <= 0)
+                        {
+                            continue;
+                        }
+
+                        Thing pick = GenClosest.ClosestThingReachable(pawn.Position, map, ThingRequest.ForDef(cost.thingDef), PathEndMode.ClosestTouch, TraverseParms.For(pawn), 9999f,
+                            t => !t.IsForbidden(pawn) && pawn.CanReserve(t));
+                        LayerDebug.Log(pawn, "construction " + site.LabelShort + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + " needs " + missing + " " + cost.thingDef.label + ": " + (pick == null ? "none here" : "from " + pick.LabelShort));
+                        if (pick == null)
+                        {
+                            continue;
+                        }
+
+                        Job job = JobMaker.MakeJob(YDMDefOf.YDM_HaulAcrossLayers, pick, portal, site);
+                        job.count = Mathf.Min(missing, pick.stackCount, pawn.carryTracker.AvailableStackSpace(pick.def));
+                        job.workGiverDef = def;
+                        return job.count > 0 ? job : null;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // 그 층에 이미 있는(금지되지 않은) 재료 수. 묶음 합산을 거치지 않은 그 층만의 값.
+        private static int CountOn(Map map, ThingDef def, Pawn pawn)
+        {
+            int n = 0;
+            foreach (Thing t in map.listerThings.ThingsOfDef(def))
+            {
+                if (t.Spawned && !t.IsForbidden(Faction.OfPlayer))
+                {
+                    n += t.stackCount;
+                }
+            }
+
+            return n;
+        }
+
+        // 이 청사진으로 가져가는 중인 재료 수 (아직 이 층에서 들고 가는 중이거나, 사다리를 넘는 중).
+        private static int InTransit(Thing site, ThingDef def)
+        {
+            int n = 0;
+            GameComponent_LayerTravel comp = GameComponent_LayerTravel.Instance;
+            foreach (Map m in LayerUtility.Chain(site.Map))
+            {
+                foreach (Pawn p in m.mapPawns.FreeColonistsSpawned)
+                {
+                    Job j = p.CurJob;
+                    if (j != null && j.def == YDMDefOf.YDM_HaulAcrossLayers && j.targetC.Thing == site && j.targetA.Thing?.def == def)
+                    {
+                        n += j.count;
+                    }
+                    else if (comp?.GetOrder(p) is TravelOrder o && o.destination == site && p.carryTracker.CarriedThing?.def == def)
+                    {
+                        n += p.carryTracker.CarriedThing.stackCount;
+                    }
+                }
+            }
+
+            return n;
+        }
+    }
+
+    // 건설 메뉴: 재질을 고를 때 바닐라는 '이 지도에 그 재질이 하나라도 있는지'만 본다.
+    // 메뉴를 만드는 동안에만, 이 지도에 없으면 같은 갱도 줄의 다른 층에 있는지도 보게 한다 (원본은 그대로).
+    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.ProcessInput))]
+    internal static class Designator_Build_ProcessInput_Stuff_Patch
+    {
+        public static bool Active;
+
+        private static void Prefix()
+        {
+            Active = true;
+        }
+
+        private static void Finalizer()
+        {
+            Active = false;
+        }
+    }
+
+    // ThingsOfDef는 짧아서 호출부에 인라인될 수 있으므로, 실제로 목록을 꺼내는 ThingsMatching에 건다.
+    [HarmonyPatch(typeof(ListerThings), nameof(ListerThings.ThingsMatching))]
+    internal static class ListerThings_ThingsMatching_Stuff_Patch
+    {
+        private static bool busy;
+
+        private static void Postfix(ThingRequest req, ref List<Thing> __result)
+        {
+            if (!Designator_Build_ProcessInput_Stuff_Patch.Active || busy || req.singleDef == null || __result.Count > 0 || GhostUtility.Active)
+            {
+                return;
+            }
+
+            Map current = Find.CurrentMap;
+            List<Map> chain = CountAggregate.ChainOf(current);
+            if (chain == null)
+            {
+                return;
+            }
+
+            busy = true;
+            try
+            {
+                foreach (Map other in chain)
+                {
+                    if (other == current)
+                    {
+                        continue;
+                    }
+
+                    List<Thing> theirs = other.listerThings.ThingsMatching(req);
+                    if (theirs.Count > 0)
+                    {
+                        __result = theirs;
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                busy = false;
+            }
+        }
+    }
 }
