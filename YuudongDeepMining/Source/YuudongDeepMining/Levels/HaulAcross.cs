@@ -43,8 +43,21 @@ namespace YuudongDeepMining
             float bestCost = float.MaxValue;
             foreach (Map other in LayerUtility.Chain(from))
             {
-                if (other == from || !StoreUtility.TryFindBestBetterStoreCellFor(t, null, other, StoragePriority.Unstored, faction, out IntVec3 cell, false))
+                if (other == from)
                 {
+                    continue;
+                }
+
+                if (!StoreUtility.TryFindBestBetterStoreCellFor(t, null, other, StoragePriority.Unstored, faction, out IntVec3 cell, false))
+                {
+                    if (DeepMiningMod.Settings.debugLog)
+                    {
+                        int accepting = other.haulDestinationManager.AllGroupsListInPriorityOrder.Count(g => g.Settings.AllowedToAccept(t));
+                        string level = LayerUtility.LayerLabel(LayerUtility.DepthOf(other));
+                        LayerDebug.LogOnce("storage" + t.def.defName + level, "storage for " + t.LabelShort + " on " + level + ": "
+                            + (accepting == 0 ? "no stockpile allows it" : accepting + " stockpiles allow it but no free cell"));
+                    }
+
                     continue;
                 }
 

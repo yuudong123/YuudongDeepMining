@@ -224,7 +224,17 @@ namespace YuudongDeepMining
                 return;
             }
 
-            string key = pawn.ThingID + message;
+            LogOnce(pawn.ThingID + message, pawn.LabelShort + " (" + LayerUtility.LayerLabel(LayerUtility.DepthOf(pawn.Map)) + "): " + message);
+        }
+
+        // 같은 내용은 잠시 한 번만 남긴다.
+        public static void LogOnce(string key, string text)
+        {
+            if (!DeepMiningMod.Settings.debugLog)
+            {
+                return;
+            }
+
             int now = Find.TickManager.TicksGame;
             if (last.TryGetValue(key, out int tick) && now - tick < 2500)
             {
@@ -237,7 +247,7 @@ namespace YuudongDeepMining
             }
 
             last[key] = now;
-            Verse.Log.Message("[YDM] " + pawn.LabelShort + " (" + LayerUtility.LayerLabel(LayerUtility.DepthOf(pawn.Map)) + "): " + message);
+            Verse.Log.Message("[YDM] " + text);
         }
     }
 }

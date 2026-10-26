@@ -495,16 +495,17 @@ namespace YuudongDeepMining
             }
 
             int rankHere = LayerTravelUtility.Rank(pawn, __result.Job);
-            if (rankHere == 0 || !comp.ScanDue(pawn, typeof(JobGiver_Work)))
+            if (!comp.ScanDue(pawn, typeof(JobGiver_Work)))
             {
                 return;
             }
 
-            // 모든 다른 층을 바닐라로 판단해 보고, 순위가 가장 앞서는 일을 고른다. 순위가 같으면 실제로 가는 거리가 짧은 층.
+            // 모든 다른 층을 바닐라로 판단해 보고, 순위가 가장 앞서는 일을 고른다.
+            // 순위가 같으면(같은 순서 묶음) 바닐라처럼 가까운 쪽: 이 층 일까지 걷는 거리보다 다른 층 일까지 가는 거리가 짧을 때만 간다.
             Map map = pawn.Map;
             Map best = null;
             int bestRank = rankHere;
-            float bestCost = float.MaxValue;
+            float bestCost = __result.Job != null && __result.Job.targetA.IsValid ? pawn.Position.DistanceTo(__result.Job.targetA.Cell) : float.MaxValue;
             foreach (Map other in LayerUtility.Chain(map))
             {
                 if (other == map || comp.IsWasted(pawn, other))
@@ -516,7 +517,7 @@ namespace YuudongDeepMining
                 int rank = LayerTravelUtility.Rank(pawn, there);
                 float cost = there == null ? float.MaxValue : LayerUtility.TravelCost(map, pawn.Position, other, there.targetA.Cell);
                 LayerDebug.Log(pawn, "work on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there == null ? "none" : there.def.defName + " (" + there.workGiverDef?.defName + ", rank " + rank + ", cost " + cost.ToString("0") + ")") + " vs here rank " + rankHere);
-                if (there != null && (rank < bestRank || (rank == bestRank && best != null && cost < bestCost)))
+                if (there != null && (rank < bestRank || (rank == bestRank && cost < bestCost)))
                 {
                     best = other;
                     bestRank = rank;
