@@ -187,7 +187,11 @@ namespace YuudongDeepMining
             }
 
             Building_Bed bed = PlanFor(pawn, takee, forced);
-            LayerDebug.Log(pawn, "rescue " + takee.LabelShort + ": " + (bed == null ? "no bed on other levels" : "bed on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(bed.Map))));
+            if (LayerDebug.On)
+            {
+                LayerDebug.Log(pawn, "rescue " + takee.LabelShort + ": " + (bed == null ? "no bed on other levels" : "bed on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(bed.Map))));
+            }
+
             return bed != null;
         }
 

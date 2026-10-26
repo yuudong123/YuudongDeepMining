@@ -108,6 +108,28 @@ namespace YuudongDeepMining
             return benchWorkTypes.TryGetValue(bench, out HashSet<WorkTypeDef> types) && types.Contains(workType);
         }
 
+        // 다른 층에서 작업대·청사진 옆에 가져다 놓은 재료. 그 층에 받아줄 창고가 없으면 다른 층 운반이
+        // 곧바로 원래 층 창고로 되가져가므로, 잠깐(작업자가 쓸 시간) 다른 층 운반 대상에서 뺀다.
+        private static readonly Dictionary<Thing, int> delivered = new Dictionary<Thing, int>();
+
+        private const int DeliveredTicks = 2500;
+
+        public static void MarkDelivered(Thing thing)
+        {
+            int now = Find.TickManager.TicksGame;
+            if (delivered.Count > 256)
+            {
+                delivered.RemoveAll(kv => now - kv.Value > DeliveredTicks || kv.Key.Destroyed);
+            }
+
+            delivered[thing] = now;
+        }
+
+        public static bool RecentlyDelivered(Thing thing)
+        {
+            return delivered.TryGetValue(thing, out int tick) && Find.TickManager.TicksGame - tick <= DeliveredTicks;
+        }
+
         public static void Forget(Thing benchThing)
         {
             if (benchThing is IBillGiver giver && giver.BillStack != null)
@@ -131,6 +153,7 @@ namespace YuudongDeepMining
             }
 
             Forget(benchThing);
+            MarkDelivered(carried);
             Job job = JobMaker.MakeJob(YDMDefOf.YDM_PlaceCarried, cell);
             job.count = carried.stackCount;
             job.haulMode = HaulMode.ToCellNonStorage;
@@ -190,7 +213,11 @@ namespace YuudongDeepMining
                         bool found = GhostUtility.RunThings(new[] { benchThing }, map, _ => here, () => BillSupplyUtility.FindIngredients(bill, pawn, benchThing, chosen, new List<IngredientCount>()), false);
                         ThingCount pick = found ? chosen.FirstOrDefault(tc => tc.Thing != null && tc.Thing.Spawned && tc.Thing.Map == map && missing.Any(m => m.filter.Allows(tc.Thing))
                             && !tc.Thing.IsForbidden(pawn) && pawn.CanReserve(tc.Thing)) : default;
-                        LayerDebug.Log(pawn, "supply " + bill.LabelCap + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (pick.Thing == null ? "ingredients not here" : pick.Thing.LabelShort));
+                        if (LayerDebug.On)
+                        {
+                            LayerDebug.Log(pawn, "supply " + bill.LabelCap + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (pick.Thing == null ? "ingredients not here" : pick.Thing.LabelShort));
+                        }
+
                         if (pick.Thing == null)
                         {
                             continue;
@@ -231,6 +258,8 @@ namespace YuudongDeepMining
                     continue;
                 }
 
+                // 그 층 재고 중 아직 다른 청사진 몫으로 잡히지 않은 수.
+                Dictionary<ThingDef, int> stock = new Dictionary<ThingDef, int>();
                 foreach (Thing site in other.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Concat(other.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame)))
                 {
                     if (!(site is IConstructible c) || site.Faction != Faction.OfPlayer || c.IsCompleted() || site.IsForbidden(Faction.OfPlayer))
@@ -240,7 +269,14 @@ namespace YuudongDeepMining
 
                     foreach (ThingDefCountClass cost in c.TotalMaterialCost())
                     {
-                        int missing = c.ThingCountNeeded(cost.thingDef) - CountOn(other, cost.thingDef, pawn) - InTransit(site, cost.thingDef);
+                        if (!stock.TryGetValue(cost.thingDef, out int have))
+                        {
+                            have = CountOn(other, cost.thingDef, pawn);
+                        }
+
+                        int need = Mathf.Max(0, c.ThingCountNeeded(cost.thingDef) - InTransit(site, cost.thingDef));
+                        int missing = need - have;
+                        stock[cost.thingDef] = Mathf.Max(0, have - need);
                         if (missing <= 0)
                         {
                             continue;
@@ -248,7 +284,11 @@ namespace YuudongDeepMining
 
                         Thing pick = GenClosest.ClosestThingReachable(pawn.Position, map, ThingRequest.ForDef(cost.thingDef), PathEndMode.ClosestTouch, TraverseParms.For(pawn), 9999f,
                             t => !t.IsForbidden(pawn) && pawn.CanReserve(t));
-                        LayerDebug.Log(pawn, "construction " + site.LabelShort + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + " needs " + missing + " " + cost.thingDef.label + ": " + (pick == null ? "none here" : "from " + pick.LabelShort));
+                        if (LayerDebug.On)
+                        {
+                            LayerDebug.Log(pawn, "construction " + site.LabelShort + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + " needs " + missing + " " + cost.thingDef.label + ": " + (pick == null ? "none here" : "from " + pick.LabelShort));
+                        }
+
                         if (pick == null)
                         {
                             continue;

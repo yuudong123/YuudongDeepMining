@@ -536,7 +536,11 @@ namespace YuudongDeepMining
                 Job there = LayerTravelUtility.ProbeWorkOn(__instance, pawn, other);
                 int rank = LayerTravelUtility.Rank(pawn, there);
                 float cost = there == null ? float.MaxValue : LayerUtility.TravelCost(map, pawn.Position, other, there.targetA.Cell);
-                LayerDebug.Log(pawn, "work on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there == null ? "none" : there.def.defName + " (" + there.workGiverDef?.defName + ", rank " + rank + ", cost " + cost.ToString("0") + ")") + " vs here rank " + rankHere);
+                if (LayerDebug.On)
+                {
+                    LayerDebug.Log(pawn, "work on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there == null ? "none" : there.def.defName + " (" + there.workGiverDef?.defName + ", rank " + rank + ", cost " + cost.ToString("0") + ")") + " vs here rank " + rankHere);
+                }
+
                 if (there != null && (rank < bestRank || (rank == bestRank && cost < bestCost)))
                 {
                     best = other;
@@ -619,7 +623,11 @@ namespace YuudongDeepMining
                 }
 
                 Job there = GhostUtility.Run(pawn, other, cell, () => __instance.TryIssueJobPackage(pawn, jobParams).Job, null);
-                LayerDebug.Log(pawn, "need " + __instance.GetType().Name + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there?.def.defName ?? "none"));
+                if (LayerDebug.On)
+                {
+                    LayerDebug.Log(pawn, "need " + __instance.GetType().Name + " on " + LayerUtility.LayerLabel(LayerUtility.DepthOf(other)) + ": " + (there?.def.defName ?? "none"));
+                }
+
                 if (there == null || IsFallback(there))
                 {
                     continue;

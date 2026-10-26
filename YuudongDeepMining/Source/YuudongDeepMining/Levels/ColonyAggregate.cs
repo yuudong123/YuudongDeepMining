@@ -272,6 +272,9 @@ namespace YuudongDeepMining
     // 층 판단 디버그 로그 (설정에서 켬). 같은 림·같은 내용은 잠시 한 번만 남긴다.
     public static class LayerDebug
     {
+        // 부르는 쪽은 이 값을 먼저 보고 로그 문장을 만든다 (꺼져 있을 때 문자열·번역 비용이 들지 않게).
+        public static bool On => DeepMiningMod.Settings.debugLog;
+
         // 화면 조작(우클릭 등) 디버그: 같은 내용을 반복해도 매번 남긴다.
         public static void LogUI(string message)
         {

@@ -288,7 +288,7 @@ namespace YuudongDeepMining
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.HaulScan);
-            if (!HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced))
+            if (!HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced) || (!forced && BillSupplyUtility.RecentlyDelivered(t)))
             {
                 return false;
             }
@@ -303,7 +303,11 @@ namespace YuudongDeepMining
             Map target = HaulAcrossUtility.StorageLayerFor(t, pawn.Faction, pawn.Map, true, current);
             MapPortal portal = LayerUtility.NextPortalToward(pawn.Map, target);
             bool ok = portal != null && pawn.CanReserve(t, 1, -1, null, forced) && pawn.CanReach(portal, PathEndMode.Touch, Danger.Some);
-            LayerDebug.Log(pawn, "haul " + t.LabelShort + ": " + (target == null ? "no storage on other levels" : portal == null ? "no portal" : ok ? "ok -> " + LayerUtility.LayerLabel(LayerUtility.DepthOf(target)) : "can't reserve/reach"));
+            if (LayerDebug.On)
+            {
+                LayerDebug.Log(pawn, "haul " + t.LabelShort + ": " + (target == null ? "no storage on other levels" : portal == null ? "no portal" : ok ? "ok -> " + LayerUtility.LayerLabel(LayerUtility.DepthOf(target)) : "can't reserve/reach"));
+            }
+
             return ok;
         }
 
