@@ -25,6 +25,10 @@ namespace YuudongDeepMining
         public bool debugLog;
         public bool profiler;
 
+        // 층 패널 위치 (화면 왼쪽 위 기준). 음수면 기본 자리(오른쪽 아래, 날짜·속도 컨트롤 왼쪽).
+        public float panelX = -1f;
+        public float panelY = -1f;
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -41,6 +45,8 @@ namespace YuudongDeepMining
             Scribe_Values.Look(ref shaftInvulnerable, "shaftInvulnerable", false);
             Scribe_Values.Look(ref debugLog, "debugLog", false);
             Scribe_Values.Look(ref profiler, "profiler", false);
+            Scribe_Values.Look(ref panelX, "panelX", -1f);
+            Scribe_Values.Look(ref panelY, "panelY", -1f);
         }
     }
 

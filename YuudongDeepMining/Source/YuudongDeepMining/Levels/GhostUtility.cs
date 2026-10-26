@@ -125,6 +125,32 @@ namespace YuudongDeepMining
             }
         }
 
+        // 그리기 코드처럼 앞뒤 패치(접두·마무리)로 나뉘어 감쌀 때: 현재 지도 번호를 바꾸고 이전 값을 돌려준다.
+        // 돌려받은 값은 반드시 RestoreCurrentMap에 넘긴다. 바꾸지 않았으면 NotSwapped를 돌려준다.
+        public const int NotSwapped = int.MinValue;
+
+        public static int SwapCurrentMap(Map map)
+        {
+            Game game = Current.Game;
+            int index = Find.Maps.IndexOf(map);
+            if (game == null || index < 0 || game.currentMapIndex == index)
+            {
+                return NotSwapped;
+            }
+
+            int old = game.currentMapIndex;
+            game.currentMapIndex = (sbyte)index;
+            return old;
+        }
+
+        public static void RestoreCurrentMap(int old)
+        {
+            if (old != NotSwapped && Current.Game != null)
+            {
+                Current.Game.currentMapIndex = (sbyte)old;
+            }
+        }
+
         // 바닐라 우클릭 메뉴는 '보고 있는 지도' 기준이다. 계산하는 동안만 현재 지도 번호를 바꾼다 (지도 전환 알림·선택 해제 없이).
         public static void WithCurrentMap(Map map, Action action)
         {

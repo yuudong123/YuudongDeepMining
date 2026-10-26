@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
+using Verse.AI;
 
 namespace YuudongDeepMining
 {
@@ -9,6 +12,13 @@ namespace YuudongDeepMining
         public int depth;
 
         private int lastInfestationTick = -999999;
+
+        // 확인할 때 정착민이 없어 넘어간 횟수. 정착민이 오면 그만큼의 기회를 한 번에 굴린다 (최대 하루치).
+        private int missedChecks;
+
+        private const int CheckInterval = 2500;
+
+        private const int MaxMissedChecks = 24;
 
         public MapComponent_DeepLayer(Map map)
             : base(map)
@@ -23,7 +33,7 @@ namespace YuudongDeepMining
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Infestation);
             int ticks = Find.TickManager.TicksGame;
-            if ((ticks + map.uniqueID) % 2500 == 0)
+            if ((ticks + map.uniqueID) % CheckInterval == 0)
             {
                 TryInfestation(ticks);
             }
@@ -39,32 +49,62 @@ namespace YuudongDeepMining
 
             if (ticks - lastInfestationTick < s.infestationCooldownDays * GenDate.TicksPerDay)
             {
+                Note("cooldown");
                 return;
             }
 
             // 정착민이 이 층에 없으면 군락이 생기지 않는다 (바닐라 곤충군락도 사람 근처에서 생김).
+            // 그 기회는 버리지 않고 쌓아 두었다가 정착민이 오면 한꺼번에 굴린다.
             if (!LayerUtility.AnyActiveColonist(map))
             {
+                missedChecks = System.Math.Min(missedChecks + 1, MaxMissedChecks);
+                Note("no colonists here (" + missedChecks + " checks saved)");
                 return;
             }
 
-            if (!Rand.MTBEventOccurs(LayerUtility.InfestationMtbDays(depth), GenDate.TicksPerDay, 2500f))
+            float window = CheckInterval * (missedChecks + 1);
+            missedChecks = 0;
+            float mtb = LayerUtility.InfestationMtbDays(depth);
+            if (!Rand.MTBEventOccurs(mtb, GenDate.TicksPerDay, window))
             {
+                Note("roll missed (mean " + mtb.ToString("0.#") + " days, window " + (window / GenDate.TicksPerHour).ToString("0") + "h)");
                 return;
             }
 
-            TriggerInfestation(ticks);
+            Note(TriggerInfestation(ticks) ? "infestation started" : "roll passed but no spot for hives");
+        }
+
+        private void Note(string text)
+        {
+            if (LayerDebug.On)
+            {
+                LayerDebug.LogOnce("infestation" + map.uniqueID + Find.TickManager.TicksGame, "infestation check on " + LayerUtility.LayerLabel(depth) + ": " + text);
+            }
         }
 
         public bool TriggerInfestation(int ticks)
         {
-            if (HiveUtility.TotalSpawnedHivesCount(map) >= 30 || !InfestationCellFinder.TryFindCell(out IntVec3 _, map))
+            if (Faction.OfInsects == null || HiveUtility.TotalSpawnedHivesCount(map) >= 30)
             {
                 return false;
             }
 
             IncidentParms parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
             parms.forced = true;
+
+            // 바닐라 자리 찾기는 정착지 건물 30칸 안만 본다. 지하에서 채굴만 하고 지은 게 없으면 자리가 없으니,
+            // 그때는 정착민 근처의 지붕 덮인 칸을 직접 골라 바닐라 사건에 위치로 넘긴다 (생성은 바닐라 그대로).
+            if (!InfestationCellFinder.TryFindCell(out IntVec3 _, map))
+            {
+                IntVec3 spot = FallbackSpot();
+                if (!spot.IsValid)
+                {
+                    return false;
+                }
+
+                parms.infestationLocOverride = spot;
+            }
+
             if (IncidentDefOf.Infestation.Worker.TryExecute(parms))
             {
                 lastInfestationTick = ticks;
@@ -74,11 +114,32 @@ namespace YuudongDeepMining
             return false;
         }
 
+        // 정착민 근처(6~30칸), 지붕 덮이고 안개가 걷힌 걸을 수 있는 빈 칸.
+        private IntVec3 FallbackSpot()
+        {
+            List<Pawn> colonists = map.mapPawns.FreeColonistsSpawned.Where(p => !p.Downed && !p.Dead).ToList();
+            if (colonists.Count == 0)
+            {
+                return IntVec3.Invalid;
+            }
+
+            Pawn near = colonists.RandomElement();
+            bool Ok(IntVec3 c)
+            {
+                return c.Standable(map) && !c.Fogged(map) && c.Roofed(map) && c.GetFirstPawn(map) == null && c.GetFirstThing(map, ThingDefOf.Hive) == null
+                    && c.GetFirstThing(map, ThingDefOf.TunnelHiveSpawner) == null && c.GetEdifice(map) == null
+                    && colonists.All(p => !c.InHorDistOf(p.Position, 6f)) && map.reachability.CanReach(c, near, PathEndMode.Touch, TraverseParms.For(TraverseMode.PassDoors));
+            }
+
+            return CellFinder.TryFindRandomCellNear(near.Position, map, 30, Ok, out IntVec3 spot) ? spot : IntVec3.Invalid;
+        }
+
         public override void ExposeData()
         {
             base.ExposeData();
             Scribe_Values.Look(ref depth, "depth", 0);
             Scribe_Values.Look(ref lastInfestationTick, "lastInfestationTick", -999999);
+            Scribe_Values.Look(ref missedChecks, "missedChecks", 0);
         }
     }
 

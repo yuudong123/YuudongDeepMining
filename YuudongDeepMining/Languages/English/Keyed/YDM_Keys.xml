@@ -67,6 +67,7 @@
   <YDM.AssignLabel>Home level: {0}</YDM.AssignLabel>
   <YDM.AssignDesc>Choose the level this colonist mainly stays on. They stay there, but when there is nothing to do on it and there is work on another level connected by the shaft, they climb the ladders to go and do it, then come back once idle. If they get hungry or tired with no food or bed on that level, they go up.\n\nFree: no home level; they stay wherever their work took them.</YDM.AssignDesc>
   <YDM.LayerPanelTitle>Mine levels</YDM.LayerPanelTitle>
+  <YDM.LayerPanelMoveTip>Drag to move the panel. Right-click: back to the default spot</YDM.LayerPanelMoveTip>
   <YDM.LayerPanelTip>Click to view that level. Selected colonists stay remote-selected, so you can right-click on this level to give them orders; they climb the ladders and carry them out on arrival.\n\nHotkeys: level above {0}, level below {1}</YDM.LayerPanelTip>
   <YDM.RemoteSelected>Selected on other levels: {0}</YDM.RemoteSelected>
   <YDM.RemoteMoveHere>Come up/down the ladders and go here</YDM.RemoteMoveHere>

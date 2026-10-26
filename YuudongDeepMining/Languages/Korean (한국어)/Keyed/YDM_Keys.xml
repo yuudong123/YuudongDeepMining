@@ -67,6 +67,7 @@
   <YDM.AssignLabel>주로 머무는 층: {0}</YDM.AssignLabel>
   <YDM.AssignDesc>이 정착민이 주로 머무는 층을 정합니다. 평소에는 그 층에 머물다가, 그 층에 할 일이 없고 갱도로 이어진 다른 층에 할 일이 있으면 사다리를 타고 가서 일하고, 한가해지면 돌아옵니다. 배고프거나 졸린데 그 층에 먹을 것이나 침대가 없으면 위로 올라갑니다.\n\n자유: 머무는 층 없이, 일을 따라 옮긴 층에 그대로 머뭅니다.</YDM.AssignDesc>
   <YDM.LayerPanelTitle>갱도 층</YDM.LayerPanelTitle>
+  <YDM.LayerPanelMoveTip>끌어서 패널을 옮깁니다. 오른쪽 클릭: 원래 자리로</YDM.LayerPanelMoveTip>
   <YDM.LayerPanelTip>눌러서 그 층을 봅니다. 선택한 림은 원격 선택으로 남아, 이 층을 우클릭해 명령할 수 있습니다. 림은 사다리를 타고 와서 명령을 수행합니다.\n\n단축키: 위층 {0}, 아래층 {1}</YDM.LayerPanelTip>
   <YDM.RemoteSelected>다른 층에서 선택됨: {0}</YDM.RemoteSelected>
   <YDM.RemoteMoveHere>사다리 타고 와서 여기로 이동</YDM.RemoteMoveHere>

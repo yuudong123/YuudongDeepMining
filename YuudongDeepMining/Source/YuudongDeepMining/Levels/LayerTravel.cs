@@ -172,12 +172,18 @@ namespace YuudongDeepMining
         public override void LoadedGame()
         {
             WorkbenchCompat.ClearAll();
+            AreaRestrictionRepair.RepairAll();
         }
 
         public override void GameComponentTick()
         {
             using YDMProfiler.Scope __perf = YDMProfiler.Measure(YDMProfiler.Cat.Travel);
             YDMProfiler.Update();
+            if (Find.TickManager.TicksGame % GenDate.TicksPerHour == 0)
+            {
+                AreaRestrictionRepair.RepairAll();
+            }
+
             if (Find.TickManager.TicksGame % 20 != 0 || orders.Count == 0)
             {
                 return;

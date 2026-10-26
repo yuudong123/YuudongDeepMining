@@ -38,6 +38,21 @@ namespace YuudongDeepMining
                 yield return gizmo;
             }
 
+            if (DebugSettings.ShowDevGizmos && Map.GetComponent<MapComponent_DeepLayer>() is MapComponent_DeepLayer layer)
+            {
+                yield return new Command_Action
+                {
+                    defaultLabel = "DEV: Trigger infestation",
+                    action = delegate
+                    {
+                        if (!layer.TriggerInfestation(Find.TickManager.TicksGame))
+                        {
+                            Messages.Message("No spot for hives on this level (or 30+ hives already).", MessageTypeDefOf.RejectInput, false);
+                        }
+                    },
+                };
+            }
+
             if (entrance is Building_MineShaft shaft)
             {
                 yield return new Command_Action

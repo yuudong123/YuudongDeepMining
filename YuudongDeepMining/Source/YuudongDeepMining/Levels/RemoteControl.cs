@@ -207,6 +207,7 @@ namespace YuudongDeepMining
         private static string[] labels = new string[0];
         private static string title;
         private static string tip;
+        private static string moveTip;
         private static long labelsMs;
 
         private static void RefreshLabels(List<Map> chain)
@@ -227,22 +228,87 @@ namespace YuudongDeepMining
             }
 
             title = "YDM.LayerPanelTitle".Translate();
+            moveTip = "YDM.LayerPanelMoveTip".Translate();
             tip = "YDM.LayerPanelTip".Translate(YDMDefOf.YDM_LayerUp?.MainKeyLabel ?? "", YDMDefOf.YDM_LayerDown?.MainKeyLabel ?? "");
+        }
+
+        // 제목 줄을 끌어 패널을 옮긴다. 놓으면 위치를 설정에 저장한다. 제목 줄 오른쪽 클릭은 기본 자리로.
+        private static bool draggingPanel;
+        private static Vector2 dragOffset;
+
+        private static Rect PanelRect(float height)
+        {
+            DeepMiningSettings s = DeepMiningMod.Settings;
+            if (s.panelX < 0f || s.panelY < 0f)
+            {
+                // 기본 자리: 오른쪽 아래, 날짜·속도 컨트롤(GlobalControls) 왼쪽. 오른쪽 위는 알림 칸과 겹친다.
+                return new Rect(UI.screenWidth - GlobalControls.Width - PanelWidth - 12f, UI.screenHeight - 35f - height - 8f, PanelWidth, height);
+            }
+
+            // 창 크기가 바뀌거나 층 수가 늘어도 화면 밖으로 나가지 않게.
+            float x = Mathf.Clamp(s.panelX, 0f, Mathf.Max(0f, UI.screenWidth - PanelWidth));
+            float y = Mathf.Clamp(s.panelY, 0f, Mathf.Max(0f, UI.screenHeight - height));
+            return new Rect(x, y, PanelWidth, height);
+        }
+
+        private static void HandlePanelDrag(Rect outer, Rect titleRow)
+        {
+            Event e = Event.current;
+            Vector2 mouse = UI.MousePositionOnUIInverted;
+            DeepMiningSettings s = DeepMiningMod.Settings;
+            if (e.type == EventType.MouseDown && titleRow.Contains(mouse))
+            {
+                if (e.button == 0)
+                {
+                    draggingPanel = true;
+                    dragOffset = mouse - outer.position;
+                }
+                else if (e.button == 1)
+                {
+                    s.panelX = -1f;
+                    s.panelY = -1f;
+                    s.Write();
+                }
+
+                e.Use();
+                return;
+            }
+
+            if (!draggingPanel)
+            {
+                return;
+            }
+
+            if (e.type == EventType.MouseUp || !Input.GetMouseButton(0))
+            {
+                draggingPanel = false;
+                s.Write();
+                return;
+            }
+
+            if (e.type == EventType.Repaint)
+            {
+                s.panelX = Mathf.Clamp(mouse.x - dragOffset.x, 0f, Mathf.Max(0f, UI.screenWidth - outer.width));
+                s.panelY = Mathf.Clamp(mouse.y - dragOffset.y, 0f, Mathf.Max(0f, UI.screenHeight - outer.height));
+            }
         }
 
         private static void DrawPanel(Map map, List<Map> chain)
         {
             RefreshLabels(chain);
             float height = 28f + chain.Count * RowHeight + (remote.Count > 0 ? 58f : 0f);
-            // 오른쪽 아래, 날짜·속도 컨트롤(GlobalControls) 왼쪽. 오른쪽 위는 알림 칸과 겹친다.
-            Rect outer = new Rect(UI.screenWidth - GlobalControls.Width - PanelWidth - 12f, UI.screenHeight - 35f - height - 8f, PanelWidth, height);
+            Rect outer = PanelRect(height);
             panelRect = outer;
             YDMProfiler.Draw(outer);
             Widgets.DrawWindowBackground(outer);
             Rect inner = outer.ContractedBy(5f);
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(new Rect(inner.x, inner.y, inner.width, 18f), title);
+            Rect titleRow = new Rect(inner.x, inner.y, inner.width, 18f);
+            Widgets.DrawHighlightIfMouseover(titleRow);
+            Widgets.Label(titleRow, title);
+            TooltipHandler.TipRegion(titleRow, moveTip);
+            HandlePanelDrag(outer, titleRow);
             float y = inner.y + 20f;
             for (int i = 0; i < chain.Count; i++)
             {
