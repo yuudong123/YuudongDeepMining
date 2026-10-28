@@ -40,6 +40,8 @@
   <YDM.Perf.Cat.Infestation>곤충군락</YDM.Perf.Cat.Infestation>
   <YDM.Perf.Cat.LevelPanel>층 패널</YDM.Perf.Cat.LevelPanel>
   <YDM.Perf.Cat.Chain>갱도 줄 찾기</YDM.Perf.Cat.Chain>
+  <YDM.RemoteBlocked>{0}: 갱도가 상호작용 금지라 내려갈 수 없어 명령을 취소했습니다.</YDM.RemoteBlocked>
+  <YDM.RemoteShaftForbidden>갱도가 상호작용 금지라 이 층으로 내려올 수 없습니다.</YDM.RemoteShaftForbidden>
   <YDM.RemoteDraft>소집</YDM.RemoteDraft>
   <YDM.Surface>지상</YDM.Surface>
   <YDM.LayerN>지하 {0}층</YDM.LayerN>

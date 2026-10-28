@@ -245,6 +245,7 @@ namespace YuudongDeepMining
             if (portal == null)
             {
                 ClearOrder(pawn);
+                Messages.Message("YDM.RemoteBlocked".Translate(pawn.LabelShort), pawn, MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
@@ -534,7 +535,7 @@ namespace YuudongDeepMining
             float bestCost = __result.Job != null && __result.Job.targetA.IsValid ? pawn.Position.DistanceTo(__result.Job.targetA.Cell) : float.MaxValue;
             foreach (Map other in LayerUtility.Chain(map))
             {
-                if (other == map || comp.IsWasted(pawn, other))
+                if (other == map || comp.IsWasted(pawn, other) || !LayerUtility.CanTravel(map, other))
                 {
                     continue;
                 }
@@ -622,7 +623,7 @@ namespace YuudongDeepMining
             float bestCost = float.MaxValue;
             foreach (Map other in LayerUtility.Chain(map))
             {
-                IntVec3 cell = other == map ? IntVec3.Invalid : LayerUtility.ArrivalCellOn(map, other);
+                IntVec3 cell = other == map || !LayerUtility.CanTravel(map, other) ? IntVec3.Invalid : LayerUtility.ArrivalCellOn(map, other);
                 if (!cell.IsValid)
                 {
                     continue;

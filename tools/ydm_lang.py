@@ -49,6 +49,8 @@ K = {
     "YDM.Perf.Cat.LevelPanel": ("층 패널", "level panel"),
     "YDM.Perf.Cat.Chain": ("갱도 줄 찾기", "shaft chain lookup"),
 
+    "YDM.RemoteBlocked": ("{0}: 갱도가 상호작용 금지라 내려갈 수 없어 명령을 취소했습니다.", "{0}: the mine shaft is forbidden, so the order was cancelled."),
+    "YDM.RemoteShaftForbidden": ("갱도가 상호작용 금지라 이 층으로 내려올 수 없습니다.", "The mine shaft is forbidden, so they can't come down to this level."),
     "YDM.RemoteDraft": ("소집", "Draft"),
 
     "YDM.Surface": ("지상", "surface"),

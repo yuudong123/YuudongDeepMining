@@ -40,6 +40,11 @@
     <inspectorTabs>
       <li>ITab_ContentsMapPortal</li>
     </inspectorTabs>
+    <!-- 상호작용 금지: 금지하면 정착지 림이 이 갱도로 내려가지 않는다. 아래층 사다리(올라오기)는 그대로 쓸 수 있다.
+         길찾기에는 영향이 없다 (문이 아닌 통과 불가 건물이라 금지 여부가 경로 격자에 쓰이지 않는다). -->
+    <comps>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
   </ThingDef>
 
   <ThingDef ParentName="YDM_MineShaftBase">

@@ -237,6 +237,8 @@ namespace YuudongDeepMining
         }
 
         // a에서 b로 가려면 지금 지도에서 들어가야 할 포털 (위로 가면 사다리, 아래로 가면 갱도).
+        // 정착지가 상호작용 금지한 갱도로는 내려가지 않는다 (null). 위로 가는 사다리는 금지할 수 없어서 늘 올라올 수 있다.
+        // 습격대는 금지와 상관없이 갱도를 직접 쓰므로 여기를 거치지 않는다.
         public static MapPortal NextPortalToward(Map from, Map to)
         {
             if (from == null || to == null || from == to || !SameChain(from, to))
@@ -250,7 +252,30 @@ namespace YuudongDeepMining
             }
 
             Building_MineShaft shaft = DownShaft(from);
-            return shaft != null && shaft.PocketMapExists ? shaft : null;
+            return shaft != null && shaft.PocketMapExists && !shaft.IsForbidden(Faction.OfPlayer) ? shaft : null;
+        }
+
+        // from에서 to까지 사다리·갱도를 차례로 지나 갈 수 있는가 (중간 층 갱도가 금지돼 있으면 못 간다).
+        public static bool CanTravel(Map from, Map to)
+        {
+            Map map = from;
+            int guard = 0;
+            while (map != to)
+            {
+                MapPortal portal = NextPortalToward(map, to);
+                if (portal == null || guard++ > 32)
+                {
+                    return false;
+                }
+
+                ArrivalCell(portal, out map);
+                if (map == null)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // 포털을 지나 도착하는 칸 (다른 지도 쪽).

@@ -17,7 +17,7 @@ namespace YuudongDeepMining
             }
 
             Pawn master = pawn.playerSettings?.RespectedMaster;
-            if (master == null || !master.Spawned || master.Map == pawn.Map || !LayerUtility.SameChain(pawn.Map, master.Map))
+            if (master == null || !master.Spawned || master.Map == pawn.Map || !LayerUtility.SameChain(pawn.Map, master.Map) || !LayerUtility.CanTravel(pawn.Map, master.Map))
             {
                 return null;
             }

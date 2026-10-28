@@ -380,6 +380,13 @@ namespace YuudongDeepMining
             Map map = Find.CurrentMap;
             IntVec3 cell = IntVec3.FromVector3(clickPos);
             List<Pawn> pawns = remote.Where(p => p.Spawned && p.CanTakeOrder && p.Map != map && LayerUtility.SameChain(p.Map, map)).ToList();
+            int blocked = pawns.RemoveAll(p => !LayerUtility.CanTravel(p.Map, map));
+            if (pawns.Count == 0 && blocked > 0)
+            {
+                Messages.Message("YDM.RemoteShaftForbidden".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
             if (LayerDebug.On)
             {
                 LayerDebug.LogUI("right-click at " + cell + ": remote " + remote.Count + ", usable " + pawns.Count + ", local " + local.Count);

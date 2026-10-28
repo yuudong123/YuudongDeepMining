@@ -30,7 +30,7 @@ namespace YuudongDeepMining
             foreach (Map other in LayerUtility.Chain(map))
             {
                 IntVec3 cell = other == map ? IntVec3.Invalid : LayerUtility.ArrivalCellOn(map, other);
-                MapPortal portal = LayerUtility.NextPortalToward(map, other);
+                MapPortal portal = LayerUtility.CanTravel(map, other) ? LayerUtility.NextPortalToward(map, other) : null;
                 if (!cell.IsValid || portal == null || !map.reachability.CanReach(takee.Position, portal, PathEndMode.Touch, TraverseParms.For(carrier, Danger.Deadly)))
                 {
                     continue;

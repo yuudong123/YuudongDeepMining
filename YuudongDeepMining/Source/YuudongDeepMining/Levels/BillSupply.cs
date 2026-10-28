@@ -177,7 +177,7 @@ namespace YuudongDeepMining
             List<ThingCount> chosen = new List<ThingCount>();
             foreach (Map other in LayerUtility.Chain(map))
             {
-                MapPortal portal = other == map ? null : LayerUtility.NextPortalToward(map, other);
+                MapPortal portal = other == map || !LayerUtility.CanTravel(map, other) ? null : LayerUtility.NextPortalToward(map, other);
                 if (portal == null || !pawn.CanReach(portal, PathEndMode.Touch, Danger.Deadly))
                 {
                     continue;
@@ -252,7 +252,7 @@ namespace YuudongDeepMining
 
             foreach (Map other in LayerUtility.Chain(map))
             {
-                MapPortal portal = other == map ? null : LayerUtility.NextPortalToward(map, other);
+                MapPortal portal = other == map || !LayerUtility.CanTravel(map, other) ? null : LayerUtility.NextPortalToward(map, other);
                 if (portal == null || !pawn.CanReach(portal, PathEndMode.Touch, Danger.Deadly))
                 {
                     continue;
