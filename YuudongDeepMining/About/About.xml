@@ -32,6 +32,7 @@ Features
 - Alerts, resource counts, "do until you have X" bills and colony wealth count every level of the shaft together. Tamed animals follow their master between levels.
 - Home level: give each colonist a level to mainly stay on. They go out when there is work or a need elsewhere and come back once idle.
 - Level panel: switch between levels with the panel at the top right (or the = and - keys). Colonists you had selected stay selected from the other level, so you can right-click to give them any order there, from moving to prioritizing a workbench. They climb the ladders and carry it out when they arrive.
+- Forbidding a shaft: forbid a mine shaft and colonists stop going down it. The ladder below stays usable, so colonists already underground can still come up.
 - Sealing a shaft, or losing it, collapses every level below it. Everything down there is lost, and anyone still below is buried alive. A sealed shaft stays behind, filled with earth and boarded over; deconstruct it to clear the spot.
 - Raids: when none of your active colonists are on the surface but some are underground, sapper and breacher raids follow you down the shaft. Other raiders never notice the underground levels.
 - The shaft only takes damage when it is deliberately attacked: enemy AI never picks it as a target, and stray shots pass over it. The ladder out of an underground level cannot be damaged or deconstructed.
