@@ -436,9 +436,12 @@ namespace YuudongDeepMining
                 return null;
             }
 
-            // 욕구를 채우러 가는 길이 아니면, 배고프거나 졸릴 때는 바닐라 욕구 판단에 먼저 맡긴다.
+            // 욕구를 채우러 가는 길이 아니면(일·집), 배고프거나 졸릴 때는 그 이동을 접고 바닐라 욕구 판단에 먼저 맡긴다.
+            // 이동을 남겨 두면 다른 층 욕구 판단(ThinkNode_JobGiver_AcrossLayers_Patch)이 진행 중인 이동으로 보고 건너뛰어,
+            // 이 층에서 해결이 안 될 때 굶는다. 일은 욕구를 채운 뒤 작업 탐색이 다시 고른다.
             if (order.kind != TravelKind.Need && LayerTravelUtility.HasUrgentNeed(pawn))
             {
+                comp.ClearOrder(pawn);
                 return null;
             }
 

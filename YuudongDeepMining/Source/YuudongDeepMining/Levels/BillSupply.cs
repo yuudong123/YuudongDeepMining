@@ -262,7 +262,8 @@ namespace YuudongDeepMining
                 Dictionary<ThingDef, int> stock = new Dictionary<ThingDef, int>();
                 foreach (Thing site in other.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Concat(other.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame)))
                 {
-                    if (!(site is IConstructible c) || site.Faction != Faction.OfPlayer || c.IsCompleted() || site.IsForbidden(Faction.OfPlayer))
+                    // 설치 청사진은 재료가 필요 없다 (바닐라는 재료 목록을 물으면 오류를 남긴다).
+                    if (!(site is IConstructible c) || site is Blueprint_Install || site.Faction != Faction.OfPlayer || c.IsCompleted() || site.IsForbidden(Faction.OfPlayer))
                     {
                         continue;
                     }
