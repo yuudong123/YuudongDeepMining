@@ -64,8 +64,8 @@ namespace YuudongDeepMining
     }
 
     // 콜로니스트 바를 드래그해 여러 층 림을 고르면, 보던 층은 그대로 두고 이 층 림은 선택, 다른 층 림은 원격 선택에 넣는다.
-    // 바닐라는 다른 지도 림을 고를 때마다 그 지도로 넘어가며 앞서 고른 림을 해제한다(마지막 지도의 림만 남는다).
-    // 바닐라 선택은 그대로 돌리고, 끝난 뒤 같은 갱도 줄 안에서 넘어갔으면 보던 층·카메라로 되돌려 다시 고른다.
+    // 바닐라는 범위에 보던 지도 림이 있으면 그 림만 고르고, 다른 지도 림만 있으면 그 지도로 넘어간다.
+    // 바닐라 선택은 그대로 돌리고, 끝난 뒤 같은 갱도 줄 안에서 넘어갔으면 보던 층·카메라로 되돌려 범위 안 림을 다시 고른다.
     [HarmonyPatch(typeof(Selector), "SelectInsideDragBox")]
     internal static class Selector_SelectInsideDragBox_Remote_Patch
     {
@@ -99,22 +99,11 @@ namespace YuudongDeepMining
                 return;
             }
 
-            // 바닐라가 돌려주는 목록은 재사용 버퍼라 지도를 되돌리기 전에 복사해 둔다.
-            List<Thing> inBox = new List<Thing>(Find.ColonistBar.ColonistsOrCorpsesInScreenRect(__instance.dragBox.ScreenRect));
+            List<Pawn> inBox = PawnsInRect(__instance.dragBox.ScreenRect);
             Map start = __state?.map;
-            bool switched = false;
-            if (start != null && !start.Disposed && LayerUtility.SameChain(start, current))
-            {
-                foreach (Thing thing in inBox)
-                {
-                    if (thing.Spawned && thing.Map != start)
-                    {
-                        switched = true;
-                        break;
-                    }
-                }
-            }
 
+            // 바닐라는 범위에 다른 지도 림만 있으면 그 지도로 넘어간다. 같은 갱도 줄 안이면 보던 층으로 돌아온다.
+            bool switched = start != null && start != current && !start.Disposed && LayerUtility.SameChain(start, current);
             if (switched)
             {
                 // 되돌릴 때 지도 전환 패치가 지금 선택(다른 층 림)을 원격 선택으로 넘긴다. 아래에서 드래그 범위 기준으로 다시 고른다.
@@ -135,14 +124,9 @@ namespace YuudongDeepMining
                 RemoteControl.Clear();
             }
 
-            foreach (Thing thing in inBox)
+            foreach (Pawn pawn in inBox)
             {
-                if (!(thing is Pawn pawn))
-                {
-                    continue;
-                }
-
-                if (switched && pawn.Spawned && pawn.Map == current)
+                if (switched && pawn.Spawned && !pawn.Dead && pawn.Map == current)
                 {
                     if (!__instance.IsSelected(pawn))
                     {
@@ -154,6 +138,35 @@ namespace YuudongDeepMining
                     RemoteControl.Add(pawn);
                 }
             }
+        }
+
+        // 바닐라 ColonistsOrCorpsesInScreenRect는 보고 있는 지도 림이 하나라도 범위에 있으면 다른 지도 림을 빼 버린다.
+        // 그래서 콜로니스트 바 칸 위치로 범위 안 림을 직접 고른다 (바닐라와 같은 계산).
+        private static readonly System.Func<ColonistBar, bool> BarVisible =
+            AccessTools.MethodDelegate<System.Func<ColonistBar, bool>>(AccessTools.PropertyGetter(typeof(ColonistBar), "Visible"));
+
+        private static List<Pawn> PawnsInRect(Rect rect)
+        {
+            List<Pawn> result = new List<Pawn>();
+            ColonistBar bar = Find.ColonistBar;
+            if (!BarVisible(bar))
+            {
+                return result;
+            }
+
+            List<Vector2> drawLocs = bar.DrawLocs;
+            List<ColonistBar.Entry> entries = bar.Entries;
+            Vector2 size = bar.Size;
+            for (int i = 0; i < drawLocs.Count && i < entries.Count; i++)
+            {
+                Pawn pawn = entries[i].pawn;
+                if (pawn != null && rect.Overlaps(new Rect(drawLocs[i].x, drawLocs[i].y, size.x, size.y)))
+                {
+                    result.Add(pawn);
+                }
+            }
+
+            return result;
         }
     }
 
